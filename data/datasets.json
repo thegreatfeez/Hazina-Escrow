@@ -1,0 +1,837 @@
+{
+  "datasets": [
+    {
+      "id": "ds-001-whale-wallets",
+      "name": "Top 100 Whale Wallet Movements",
+      "description": "Real-time on-chain movement data tracking the top 100 whale wallets across Ethereum and Solana. Includes entry/exit positions, token concentrations, and cross-chain bridge activity.",
+      "type": "whale-wallets",
+      "pricePerQuery": 0.05,
+      "sellerWallet": "GBVNKDPGVZGFKGRHDUBSZ5V7PXY6PJRFYF5RYVBKAHV3BUXHQWCFXBZ",
+      "data": {
+        "wallets": [
+          {
+            "address": "0x8894E0a0c962CB723c1976a4421c95949bE2D4E1",
+            "balance_eth": 42847.33,
+            "last_move": "2026-04-07T14:22:00Z",
+            "direction": "accumulating",
+            "tokens": [
+              "ETH",
+              "USDC",
+              "WBTC"
+            ],
+            "net_flow_24h": 1247.5
+          },
+          {
+            "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+            "balance_eth": 38920.17,
+            "last_move": "2026-04-08T02:15:00Z",
+            "direction": "distributing",
+            "tokens": [
+              "ETH",
+              "ARB",
+              "OP"
+            ],
+            "net_flow_24h": -892.3
+          },
+          {
+            "address": "0x28C6c06298d514Db089934071355E5743bf21d60",
+            "balance_eth": 31402.88,
+            "last_move": "2026-04-07T22:45:00Z",
+            "direction": "accumulating",
+            "tokens": [
+              "ETH",
+              "stETH"
+            ],
+            "net_flow_24h": 3201
+          },
+          {
+            "address": "0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8",
+            "balance_eth": 29847.55,
+            "last_move": "2026-04-08T06:00:00Z",
+            "direction": "holding",
+            "tokens": [
+              "ETH",
+              "USDT",
+              "DAI"
+            ],
+            "net_flow_24h": 0
+          },
+          {
+            "address": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+            "balance_eth": 27340.92,
+            "last_move": "2026-04-07T18:30:00Z",
+            "direction": "distributing",
+            "tokens": [
+              "ETH",
+              "BNB"
+            ],
+            "net_flow_24h": -1500.25
+          },
+          {
+            "address": "0xab5801a7d398351b8be11c439e05c5b3259aec9b",
+            "balance_eth": 24891.04,
+            "last_move": "2026-04-08T09:12:00Z",
+            "direction": "accumulating",
+            "tokens": [
+              "ETH",
+              "LINK",
+              "UNI"
+            ],
+            "net_flow_24h": 788.9
+          },
+          {
+            "address": "0xC61b9BB3A7a0767E3179713f3A5c7a9aeDCE193C",
+            "balance_eth": 22103.71,
+            "last_move": "2026-04-07T20:00:00Z",
+            "direction": "holding",
+            "tokens": [
+              "ETH",
+              "PEPE"
+            ],
+            "net_flow_24h": 45.5
+          },
+          {
+            "address": "0x934B510D4C9103Ab6dB9aDa3AEB380A3ABF93a5E",
+            "balance_eth": 19847.28,
+            "last_move": "2026-04-08T07:45:00Z",
+            "direction": "accumulating",
+            "tokens": [
+              "ETH",
+              "CRV",
+              "CVX"
+            ],
+            "net_flow_24h": 2100
+          },
+          {
+            "address": "0x1522900b6dafac587d499a862861c0869be6e428",
+            "balance_eth": 17302.56,
+            "last_move": "2026-04-07T16:20:00Z",
+            "direction": "distributing",
+            "tokens": [
+              "ETH",
+              "SHIB"
+            ],
+            "net_flow_24h": -3400
+          },
+          {
+            "address": "0x6262998Ced04146fA42253a5C0AF90CA02dfd2A3",
+            "balance_eth": 15890.12,
+            "last_move": "2026-04-08T10:30:00Z",
+            "direction": "accumulating",
+            "tokens": [
+              "ETH",
+              "MKR",
+              "AAVE"
+            ],
+            "net_flow_24h": 920.7
+          }
+        ],
+        "metadata": {
+          "total_wallets_tracked": 100,
+          "snapshot_time": "2026-04-08T12:00:00Z",
+          "network": "Ethereum Mainnet",
+          "total_eth_held": 1847392.44,
+          "avg_hold_time_days": 127.4
+        }
+      },
+      "queriesServed": 48,
+      "totalEarned": 2.3975,
+      "createdAt": "2026-04-01T00:00:00Z"
+    },
+    {
+      "id": "ds-002-dex-arb",
+      "name": "DEX Arbitrage Signals — Last 24hrs",
+      "description": "Live arbitrage opportunities detected across Uniswap, Curve, Balancer and PancakeSwap. Includes profit margins, gas costs, and execution windows for each signal.",
+      "type": "trading-signals",
+      "pricePerQuery": 0.1,
+      "sellerWallet": "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGGEWODYNTJXJUZT9AED4MH",
+      "data": {
+        "signals": [
+          {
+            "id": "arb-001",
+            "pair": "ETH/USDC",
+            "buy_dex": "Uniswap V3",
+            "sell_dex": "Curve",
+            "profit_pct": 0.43,
+            "profit_usd": 214.5,
+            "gas_cost_usd": 12.3,
+            "net_profit_usd": 202.2,
+            "window_seconds": 45,
+            "detected_at": "2026-04-08T11:48:22Z"
+          },
+          {
+            "id": "arb-002",
+            "pair": "WBTC/ETH",
+            "buy_dex": "Balancer",
+            "sell_dex": "Uniswap V2",
+            "profit_pct": 0.31,
+            "profit_usd": 847.2,
+            "gas_cost_usd": 18.5,
+            "net_profit_usd": 828.7,
+            "window_seconds": 30,
+            "detected_at": "2026-04-08T11:42:15Z"
+          },
+          {
+            "id": "arb-003",
+            "pair": "USDC/DAI",
+            "buy_dex": "Curve",
+            "sell_dex": "PancakeSwap",
+            "profit_pct": 0.08,
+            "profit_usd": 40.1,
+            "gas_cost_usd": 5.2,
+            "net_profit_usd": 34.9,
+            "window_seconds": 120,
+            "detected_at": "2026-04-08T11:35:00Z"
+          },
+          {
+            "id": "arb-004",
+            "pair": "ARB/ETH",
+            "buy_dex": "Uniswap V3",
+            "sell_dex": "Balancer",
+            "profit_pct": 0.67,
+            "profit_usd": 312.8,
+            "gas_cost_usd": 9.8,
+            "net_profit_usd": 303,
+            "window_seconds": 20,
+            "detected_at": "2026-04-08T11:28:44Z"
+          },
+          {
+            "id": "arb-005",
+            "pair": "LINK/USDC",
+            "buy_dex": "SushiSwap",
+            "sell_dex": "Uniswap V3",
+            "profit_pct": 0.22,
+            "profit_usd": 89.3,
+            "gas_cost_usd": 11,
+            "net_profit_usd": 78.3,
+            "window_seconds": 60,
+            "detected_at": "2026-04-08T11:15:10Z"
+          },
+          {
+            "id": "arb-006",
+            "pair": "PEPE/ETH",
+            "buy_dex": "Uniswap V2",
+            "sell_dex": "Uniswap V3",
+            "profit_pct": 1.24,
+            "profit_usd": 127.6,
+            "gas_cost_usd": 22.4,
+            "net_profit_usd": 105.2,
+            "window_seconds": 15,
+            "detected_at": "2026-04-08T10:58:33Z"
+          },
+          {
+            "id": "arb-007",
+            "pair": "CRV/ETH",
+            "buy_dex": "Curve",
+            "sell_dex": "Balancer",
+            "profit_pct": 0.51,
+            "profit_usd": 63.4,
+            "gas_cost_usd": 8.7,
+            "net_profit_usd": 54.7,
+            "window_seconds": 90,
+            "detected_at": "2026-04-08T10:44:19Z"
+          }
+        ],
+        "summary": {
+          "total_signals_24h": 147,
+          "avg_profit_pct": 0.48,
+          "total_profit_captured_usd": 28420.5,
+          "most_profitable_pair": "WBTC/ETH",
+          "busiest_dex": "Uniswap V3"
+        }
+      },
+      "queriesServed": 83,
+      "totalEarned": 8.3,
+      "createdAt": "2026-04-05T00:00:00Z"
+    },
+    {
+      "id": "ds-003-defi-yields",
+      "name": "DeFi Yield Snapshot — 20+ Protocols",
+      "description": "Comprehensive APY snapshot across 20+ DeFi protocols including Aave, Compound, Curve, Yearn and emerging protocols. Sorted by risk-adjusted returns.",
+      "type": "yield-data",
+      "pricePerQuery": 0.02,
+      "sellerWallet": "GDQVRA4RTMMFKFMTQ2LFPQDUMYXHBHKBYBDFB8WNRQR6F4NCVHNPTPZ",
+      "data": {
+        "yields": [
+          {
+            "protocol": "Aave V3",
+            "chain": "Ethereum",
+            "asset": "USDC",
+            "apy": 5.82,
+            "tvl_usd": 8420000000,
+            "risk": "low",
+            "type": "lending"
+          },
+          {
+            "protocol": "Compound V3",
+            "chain": "Ethereum",
+            "asset": "USDC",
+            "apy": 5.24,
+            "tvl_usd": 3180000000,
+            "risk": "low",
+            "type": "lending"
+          },
+          {
+            "protocol": "Curve 3pool",
+            "chain": "Ethereum",
+            "asset": "USDC/DAI/USDT",
+            "apy": 4.18,
+            "tvl_usd": 1920000000,
+            "risk": "low",
+            "type": "liquidity"
+          },
+          {
+            "protocol": "Yearn Finance",
+            "chain": "Ethereum",
+            "asset": "USDC",
+            "apy": 7.34,
+            "tvl_usd": 892000000,
+            "risk": "medium",
+            "type": "vault"
+          },
+          {
+            "protocol": "Convex Finance",
+            "chain": "Ethereum",
+            "asset": "CRV+CVX",
+            "apy": 12.47,
+            "tvl_usd": 2340000000,
+            "risk": "medium",
+            "type": "rewards"
+          },
+          {
+            "protocol": "Lido",
+            "chain": "Ethereum",
+            "asset": "stETH",
+            "apy": 3.98,
+            "tvl_usd": 24700000000,
+            "risk": "low",
+            "type": "staking"
+          },
+          {
+            "protocol": "Rocket Pool",
+            "chain": "Ethereum",
+            "asset": "rETH",
+            "apy": 3.72,
+            "tvl_usd": 4100000000,
+            "risk": "low",
+            "type": "staking"
+          },
+          {
+            "protocol": "AAVE V3",
+            "chain": "Arbitrum",
+            "asset": "USDC.e",
+            "apy": 6.91,
+            "tvl_usd": 1270000000,
+            "risk": "low",
+            "type": "lending"
+          },
+          {
+            "protocol": "GMX",
+            "chain": "Arbitrum",
+            "asset": "GLP",
+            "apy": 18.24,
+            "tvl_usd": 890000000,
+            "risk": "high",
+            "type": "liquidity"
+          },
+          {
+            "protocol": "Stargate",
+            "chain": "Arbitrum",
+            "asset": "USDC",
+            "apy": 8.72,
+            "tvl_usd": 420000000,
+            "risk": "medium",
+            "type": "bridge"
+          },
+          {
+            "protocol": "Radiant Capital",
+            "chain": "Arbitrum",
+            "asset": "USDC",
+            "apy": 14.32,
+            "tvl_usd": 280000000,
+            "risk": "high",
+            "type": "lending"
+          },
+          {
+            "protocol": "Pendle Finance",
+            "chain": "Ethereum",
+            "asset": "stETH-PT",
+            "apy": 9.84,
+            "tvl_usd": 540000000,
+            "risk": "medium",
+            "type": "yield-tokenization"
+          },
+          {
+            "protocol": "Morpho Blue",
+            "chain": "Ethereum",
+            "asset": "USDC",
+            "apy": 6.42,
+            "tvl_usd": 1840000000,
+            "risk": "low",
+            "type": "lending"
+          },
+          {
+            "protocol": "Euler Finance",
+            "chain": "Ethereum",
+            "asset": "WETH",
+            "apy": 4.11,
+            "tvl_usd": 320000000,
+            "risk": "medium",
+            "type": "lending"
+          },
+          {
+            "protocol": "Beefy Finance",
+            "chain": "BNB Chain",
+            "asset": "CAKE-BNB",
+            "apy": 24.8,
+            "tvl_usd": 180000000,
+            "risk": "high",
+            "type": "vault"
+          }
+        ],
+        "metadata": {
+          "snapshot_time": "2026-04-08T12:00:00Z",
+          "total_protocols": 20,
+          "avg_apy_stablecoins": 6.32,
+          "avg_apy_eth": 8.91,
+          "highest_apy_protocol": "Beefy Finance"
+        }
+      },
+      "queriesServed": 205,
+      "totalEarned": 4.099,
+      "createdAt": "2026-04-03T00:00:00Z"
+    },
+    {
+      "id": "ds-004-wallet-risk",
+      "name": "Wallet Risk Scores — Top 500 DeFi Wallets",
+      "description": "AI-generated risk scores for the top 500 most active DeFi wallets. Scores based on liquidation history, protocol exposure, leverage ratios, and cross-chain activity.",
+      "type": "risk-scores",
+      "pricePerQuery": 0.03,
+      "sellerWallet": "GBCJBJT3ZK6NJOCWJ5GKBHG6XUPJKBDRGN2HMVBHHZB3MXVV4F7XNKM",
+      "data": {
+        "scores": [
+          {
+            "wallet": "0x8894E0a0c962CB723c1976a4421c95949bE2D4E1",
+            "risk_score": 24,
+            "risk_label": "Very Low",
+            "liquidations": 0,
+            "leverage_ratio": 1.2,
+            "protocol_count": 8,
+            "last_liquidation": null
+          },
+          {
+            "wallet": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+            "risk_score": 71,
+            "risk_label": "High",
+            "liquidations": 3,
+            "leverage_ratio": 4.8,
+            "protocol_count": 15,
+            "last_liquidation": "2026-03-12"
+          },
+          {
+            "wallet": "0x28C6c06298d514Db089934071355E5743bf21d60",
+            "risk_score": 38,
+            "risk_label": "Medium",
+            "liquidations": 1,
+            "leverage_ratio": 2.1,
+            "protocol_count": 6,
+            "last_liquidation": "2025-11-20"
+          },
+          {
+            "wallet": "0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8",
+            "risk_score": 15,
+            "risk_label": "Very Low",
+            "liquidations": 0,
+            "leverage_ratio": 1,
+            "protocol_count": 3,
+            "last_liquidation": null
+          },
+          {
+            "wallet": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+            "risk_score": 88,
+            "risk_label": "Critical",
+            "liquidations": 7,
+            "leverage_ratio": 8.4,
+            "protocol_count": 22,
+            "last_liquidation": "2026-04-01"
+          },
+          {
+            "wallet": "0xab5801a7d398351b8be11c439e05c5b3259aec9b",
+            "risk_score": 51,
+            "risk_label": "Medium",
+            "liquidations": 2,
+            "leverage_ratio": 3.2,
+            "protocol_count": 11,
+            "last_liquidation": "2026-01-08"
+          },
+          {
+            "wallet": "0xC61b9BB3A7a0767E3179713f3A5c7a9aeDCE193C",
+            "risk_score": 33,
+            "risk_label": "Low",
+            "liquidations": 0,
+            "leverage_ratio": 1.8,
+            "protocol_count": 5,
+            "last_liquidation": null
+          },
+          {
+            "wallet": "0x934B510D4C9103Ab6dB9aDa3AEB380A3ABF93a5E",
+            "risk_score": 62,
+            "risk_label": "High",
+            "liquidations": 4,
+            "leverage_ratio": 5.1,
+            "protocol_count": 18,
+            "last_liquidation": "2026-02-28"
+          },
+          {
+            "wallet": "0x1522900b6dafac587d499a862861c0869be6e428",
+            "risk_score": 79,
+            "risk_label": "High",
+            "liquidations": 5,
+            "leverage_ratio": 6.7,
+            "protocol_count": 20,
+            "last_liquidation": "2026-03-22"
+          },
+          {
+            "wallet": "0x6262998Ced04146fA42253a5C0AF90CA02dfd2A3",
+            "risk_score": 44,
+            "risk_label": "Medium",
+            "liquidations": 1,
+            "leverage_ratio": 2.6,
+            "protocol_count": 9,
+            "last_liquidation": "2025-12-15"
+          }
+        ],
+        "metadata": {
+          "total_wallets_scored": 500,
+          "avg_risk_score": 48.7,
+          "critical_wallets": 23,
+          "high_risk_wallets": 87,
+          "model_version": "HazAI-Risk-v2.1",
+          "scored_at": "2026-04-08T06:00:00Z"
+        }
+      },
+      "queriesServed": 157,
+      "totalEarned": 4.7085,
+      "createdAt": "2026-04-02T00:00:00Z"
+    },
+    {
+      "id": "ds-005-nft-floors",
+      "name": "NFT Floor Price Movements — Last 7 Days",
+      "description": "Comprehensive floor price tracking for top 50 NFT collections over the last 7 days. Includes volume, holder counts, wash trading flags, and momentum scores.",
+      "type": "nft-data",
+      "pricePerQuery": 0.02,
+      "sellerWallet": "GC4ATKYF6C66DSWN6QNBZKZ2MOZDKJMEA252ZDP74TRYOQ57YJJKFKW",
+      "data": {
+        "collections": [
+          {
+            "name": "Bored Ape Yacht Club",
+            "symbol": "BAYC",
+            "floor_eth": 8.24,
+            "floor_change_7d_pct": -12.4,
+            "volume_7d_eth": 847.3,
+            "holders": 5842,
+            "wash_trade_flag": false,
+            "momentum": "bearish"
+          },
+          {
+            "name": "CryptoPunks",
+            "symbol": "PUNK",
+            "floor_eth": 18.9,
+            "floor_change_7d_pct": 4.2,
+            "volume_7d_eth": 1204.8,
+            "holders": 3512,
+            "wash_trade_flag": false,
+            "momentum": "bullish"
+          },
+          {
+            "name": "Azuki",
+            "symbol": "AZUKI",
+            "floor_eth": 4.1,
+            "floor_change_7d_pct": -8.1,
+            "volume_7d_eth": 321.5,
+            "holders": 7241,
+            "wash_trade_flag": false,
+            "momentum": "bearish"
+          },
+          {
+            "name": "DeGods",
+            "symbol": "DGOD",
+            "floor_eth": 2.85,
+            "floor_change_7d_pct": 22.3,
+            "volume_7d_eth": 198.4,
+            "holders": 4892,
+            "wash_trade_flag": false,
+            "momentum": "bullish"
+          },
+          {
+            "name": "Pudgy Penguins",
+            "symbol": "PPG",
+            "floor_eth": 6.72,
+            "floor_change_7d_pct": 8.7,
+            "volume_7d_eth": 534.2,
+            "holders": 8371,
+            "wash_trade_flag": false,
+            "momentum": "bullish"
+          },
+          {
+            "name": "Milady Maker",
+            "symbol": "MILADY",
+            "floor_eth": 1.44,
+            "floor_change_7d_pct": 31.8,
+            "volume_7d_eth": 284.1,
+            "holders": 6102,
+            "wash_trade_flag": true,
+            "momentum": "bullish"
+          },
+          {
+            "name": "Doodles",
+            "symbol": "DOODLE",
+            "floor_eth": 0.92,
+            "floor_change_7d_pct": -18.9,
+            "volume_7d_eth": 87.3,
+            "holders": 4521,
+            "wash_trade_flag": false,
+            "momentum": "bearish"
+          },
+          {
+            "name": "World of Women",
+            "symbol": "WOW",
+            "floor_eth": 0.38,
+            "floor_change_7d_pct": -5.2,
+            "volume_7d_eth": 42.1,
+            "holders": 7820,
+            "wash_trade_flag": false,
+            "momentum": "neutral"
+          },
+          {
+            "name": "CloneX",
+            "symbol": "CLONEX",
+            "floor_eth": 1.87,
+            "floor_change_7d_pct": 14.2,
+            "volume_7d_eth": 143.8,
+            "holders": 9421,
+            "wash_trade_flag": false,
+            "momentum": "bullish"
+          },
+          {
+            "name": "Okay Bears",
+            "symbol": "OKAY",
+            "floor_eth": 0.28,
+            "floor_change_7d_pct": -24.1,
+            "volume_7d_eth": 31.4,
+            "holders": 6241,
+            "wash_trade_flag": false,
+            "momentum": "bearish"
+          }
+        ],
+        "metadata": {
+          "total_collections": 50,
+          "snapshot_end": "2026-04-08T12:00:00Z",
+          "snapshot_start": "2026-04-01T12:00:00Z",
+          "market_sentiment": "mixed",
+          "total_volume_7d_eth": 18420.8
+        }
+      },
+      "queriesServed": 98,
+      "totalEarned": 1.96,
+      "createdAt": "2026-04-04T00:00:00Z"
+    },
+    {
+      "id": "ds-006-sentiment",
+      "name": "Crypto Social Sentiment Scores",
+      "description": "AI-aggregated sentiment scores from Twitter/X, Reddit, Telegram and Discord for top 30 crypto assets. Updated every 4 hours with momentum and fear/greed indicators.",
+      "type": "sentiment",
+      "pricePerQuery": 0.04,
+      "sellerWallet": "GBNKBP73TVFMBR6IQNZGQJZGQNSGHRQ7SL4BWILMMBZIMXHBZFJ4YKOH",
+      "data": {
+        "sentiments": [
+          {
+            "asset": "Bitcoin",
+            "symbol": "BTC",
+            "score": 72,
+            "label": "Greed",
+            "tweets_24h": 284920,
+            "reddit_mentions": 48291,
+            "telegram_signals": "bullish",
+            "trend": "up",
+            "change_24h": 8.4
+          },
+          {
+            "asset": "Ethereum",
+            "symbol": "ETH",
+            "score": 68,
+            "label": "Greed",
+            "tweets_24h": 198420,
+            "reddit_mentions": 32841,
+            "telegram_signals": "bullish",
+            "trend": "up",
+            "change_24h": 5.2
+          },
+          {
+            "asset": "Solana",
+            "symbol": "SOL",
+            "score": 81,
+            "label": "Extreme Greed",
+            "tweets_24h": 142830,
+            "reddit_mentions": 24120,
+            "telegram_signals": "very_bullish",
+            "trend": "up",
+            "change_24h": 12.7
+          },
+          {
+            "asset": "Arbitrum",
+            "symbol": "ARB",
+            "score": 54,
+            "label": "Neutral",
+            "tweets_24h": 48230,
+            "reddit_mentions": 8420,
+            "telegram_signals": "neutral",
+            "trend": "sideways",
+            "change_24h": -1.2
+          },
+          {
+            "asset": "Chainlink",
+            "symbol": "LINK",
+            "score": 63,
+            "label": "Greed",
+            "tweets_24h": 72840,
+            "reddit_mentions": 12481,
+            "telegram_signals": "bullish",
+            "trend": "up",
+            "change_24h": 4.8
+          },
+          {
+            "asset": "Avalanche",
+            "symbol": "AVAX",
+            "score": 42,
+            "label": "Fear",
+            "tweets_24h": 38420,
+            "reddit_mentions": 6240,
+            "telegram_signals": "bearish",
+            "trend": "down",
+            "change_24h": -7.3
+          },
+          {
+            "asset": "Polygon",
+            "symbol": "MATIC",
+            "score": 38,
+            "label": "Fear",
+            "tweets_24h": 52180,
+            "reddit_mentions": 9841,
+            "telegram_signals": "bearish",
+            "trend": "down",
+            "change_24h": -11.2
+          },
+          {
+            "asset": "Pepe",
+            "symbol": "PEPE",
+            "score": 87,
+            "label": "Extreme Greed",
+            "tweets_24h": 284120,
+            "reddit_mentions": 48420,
+            "telegram_signals": "very_bullish",
+            "trend": "up",
+            "change_24h": 28.4
+          },
+          {
+            "asset": "Uniswap",
+            "symbol": "UNI",
+            "score": 51,
+            "label": "Neutral",
+            "tweets_24h": 28420,
+            "reddit_mentions": 4820,
+            "telegram_signals": "neutral",
+            "trend": "sideways",
+            "change_24h": 0.8
+          },
+          {
+            "asset": "Aave",
+            "symbol": "AAVE",
+            "score": 58,
+            "label": "Neutral",
+            "tweets_24h": 18420,
+            "reddit_mentions": 3240,
+            "telegram_signals": "neutral",
+            "trend": "up",
+            "change_24h": 2.1
+          }
+        ],
+        "fear_greed_index": 71,
+        "market_label": "Greed",
+        "metadata": {
+          "assets_tracked": 30,
+          "last_updated": "2026-04-08T10:00:00Z",
+          "update_frequency": "4 hours",
+          "sources": [
+            "Twitter/X",
+            "Reddit",
+            "Telegram",
+            "Discord",
+            "StockTwits"
+          ]
+        }
+      },
+      "queriesServed": 135,
+      "totalEarned": 5.398,
+      "createdAt": "2026-04-06T00:00:00Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "tx-001",
+      "datasetId": "ds-001-whale-wallets",
+      "txHash": "4a3b2c1d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d8e7f6a5b4c3d2e1f0a9",
+      "amount": 0.05,
+      "buyerQuery": "which wallet moved the most ETH in the last 24 hours?",
+      "timestamp": "2026-04-08T11:30:00Z"
+    },
+    {
+      "id": "tx-002",
+      "datasetId": "ds-002-dex-arb",
+      "txHash": "1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "amount": 0.1,
+      "buyerQuery": "what is the most profitable arbitrage pair right now?",
+      "timestamp": "2026-04-08T10:15:00Z"
+    },
+    {
+      "id": "tx-003",
+      "datasetId": "ds-003-defi-yields",
+      "txHash": "9f8e7d6c5b4a3b2c1d0e9f8e7d6c5b4a3b2c1d0e9f8e7d6c5b4a3b2c1d0e9f8",
+      "amount": 0.02,
+      "buyerQuery": "best stablecoin yield with low risk?",
+      "timestamp": "2026-04-08T09:45:00Z"
+    },
+    {
+      "id": "tx-agent-5d60f900-88d0-4e4a-baeb-68e9c80d3912",
+      "datasetId": "ds-003-defi-yields",
+      "txHash": "demo-yield-data-1775813949312",
+      "amount": 0.02,
+      "buyerQuery": "[Agent Job job-b35b838b-e7e5-4cc7-9ca4-349fe1da6e2a] Find me best USDC yield, medium risk, $500 budget",
+      "timestamp": "2026-04-10T09:39:09.313Z"
+    },
+    {
+      "id": "tx-agent-ea08d4b0-9c00-4271-b8e5-eb543f0fb8b0",
+      "datasetId": "ds-001-whale-wallets",
+      "txHash": "demo-whale-wallets-1775813949314",
+      "amount": 0.05,
+      "buyerQuery": "[Agent Job job-b35b838b-e7e5-4cc7-9ca4-349fe1da6e2a] Find me best USDC yield, medium risk, $500 budget",
+      "timestamp": "2026-04-10T09:39:09.314Z"
+    },
+    {
+      "id": "tx-agent-13167bc2-4c6e-43bb-aa80-18e57640fe28",
+      "datasetId": "ds-004-wallet-risk",
+      "txHash": "demo-risk-scores-1775813949315",
+      "amount": 0.03,
+      "buyerQuery": "[Agent Job job-b35b838b-e7e5-4cc7-9ca4-349fe1da6e2a] Find me best USDC yield, medium risk, $500 budget",
+      "timestamp": "2026-04-10T09:39:09.315Z"
+    },
+    {
+      "id": "tx-agent-9f04c6a3-2afb-41bc-a6d1-063f1715f6cc",
+      "datasetId": "ds-006-sentiment",
+      "txHash": "demo-sentiment-1775813949316",
+      "amount": 0.04,
+      "buyerQuery": "[Agent Job job-b35b838b-e7e5-4cc7-9ca4-349fe1da6e2a] Find me best USDC yield, medium risk, $500 budget",
+      "timestamp": "2026-04-10T09:39:09.316Z"
+    }
+  ]
+}
