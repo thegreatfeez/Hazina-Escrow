@@ -1,0 +1,57 @@
+name: Feature / Enhancement
+description: Propose a new capability or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If this is a security-sensitive change (auth, payments, contract), open a Discussion first before writing code.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem this solves
+      description: What is currently missing or painful?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should it work? Include API shape, UI sketch, or pseudocode if helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] ...
+        - [ ] Tests cover the new behaviour
+        - [ ] Existing tests still pass
+        - [ ] No new `any` types introduced
+        - [ ] `npm run lint` passes
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Why is this the right approach?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend
+        - Frontend
+        - Smart Contract
+        - Infrastructure
+        - Tests
+        - Documentation
+    validations:
+      required: true

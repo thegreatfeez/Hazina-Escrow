@@ -1,0 +1,59 @@
+name: Good First Issue
+description: A well-scoped task for new contributors
+labels: ["good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for picking this up! Read [CONTRIBUTING.md](../../CONTRIBUTING.md) before starting — it has setup instructions and code quality standards.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What is this issue about and why does it matter?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: A checklist of what "done" looks like
+      placeholder: |
+        - [ ] ...
+        - [ ] All existing tests still pass
+        - [ ] New logic has at least one test
+        - [ ] `npm run lint` returns zero warnings
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Files to change
+      description: Which files are in scope for this issue?
+      placeholder: |
+        - `backend/src/ai/research.service.ts` (line 78)
+    validations:
+      required: true
+
+  - type: textarea
+    id: hints
+    attributes:
+      label: Implementation hints
+      description: Optional pointers to help a newcomer get started
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend
+        - Frontend
+        - Smart Contract
+        - Infrastructure
+        - Tests
+        - Documentation
+    validations:
+      required: true
