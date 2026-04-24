@@ -6,6 +6,8 @@ initializeDatadog();
 
 import express from 'express';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
 import { datasetsRouter } from './datasets/datasets.router';
 import { paymentsRouter } from './payments/payments.router';
 import { agentRouter } from './agent/agent.router';
@@ -16,6 +18,27 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '10mb' }));
+
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Hazina Escrow API',
+      version: '1.0.0',
+      description: 'API documentation for Hazina Data Escrow platform',
+    },
+    servers: [
+      {
+        url: `http://localhost:${PORT}`,
+        description: 'Local development server',
+      },
+    ],
+  },
+  apis: ['./src/**/*.ts'], // Path to the API docs
+};
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Health check with service monitoring
 app.get('/health', async (_req, res) => {

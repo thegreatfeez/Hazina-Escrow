@@ -8,7 +8,58 @@ import {
   Dataset,
 } from '../common/storage';
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Dataset:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         type:
+ *           type: string
+ *         pricePerQuery:
+ *           type: number
+ *         sellerWallet:
+ *           type: string
+ *         queriesServed:
+ *           type: integer
+ *         totalEarned:
+ *           type: number
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ */
+
 export const datasetsRouter = Router();
+
+/**
+ * @openapi
+ * /api/datasets:
+ *   get:
+ *     summary: List all datasets
+ *     description: Retrieve all datasets excluding their raw data content
+ *     responses:
+ *       200:
+ *         description: A list of datasets
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 datasets:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Dataset'
+ */
+
 
 // GET /api/datasets — list all (without raw data)
 datasetsRouter.get('/', (_req: Request, res: Response) => {
@@ -16,7 +67,34 @@ datasetsRouter.get('/', (_req: Request, res: Response) => {
   res.json({ success: true, datasets });
 });
 
-// GET /api/datasets/stats — global platform stats
+/**
+ * @openapi
+ * /api/datasets/stats:
+ *   get:
+ *     summary: Get platform statistics
+ *     description: Retrieve global statistics including total datasets, queries, and earnings
+ *     responses:
+ *       200:
+ *         description: Platform statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 stats:
+ *                   type: object
+ *                   properties:
+ *                     totalDatasets:
+ *                       type: integer
+ *                     totalQueries:
+ *                       type: integer
+ *                     totalUsdcEarned:
+ *                       type: number
+ *                     totalTransactions:
+ *                       type: integer
+ */
 datasetsRouter.get('/stats', (_req: Request, res: Response) => {
   const datasets = getAllDatasets();
   const transactions = getTransactions();
@@ -31,7 +109,33 @@ datasetsRouter.get('/stats', (_req: Request, res: Response) => {
   });
 });
 
-// GET /api/datasets/:id — single dataset metadata (no data)
+/**
+ * @openapi
+ * /api/datasets/{id}:
+ *   get:
+ *     summary: Get dataset by ID
+ *     description: Retrieve single dataset metadata by ID (excludes raw data)
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Dataset metadata
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 dataset:
+ *                   $ref: '#/components/schemas/Dataset'
+ *       404:
+ *         description: Dataset not found
+ */
 datasetsRouter.get('/:id', (req: Request, res: Response) => {
   const dataset = getDataset(req.params.id);
   if (!dataset) return res.status(404).json({ error: 'Dataset not found' });
@@ -39,7 +143,33 @@ datasetsRouter.get('/:id', (req: Request, res: Response) => {
   return res.json({ success: true, dataset: meta });
 });
 
-// GET /api/datasets/:id/transactions — dataset transaction history
+/**
+ * @openapi
+ * /api/datasets/{id}/transactions:
+ *   get:
+ *     summary: Get dataset transactions
+ *     description: Retrieve transaction history for a specific dataset
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of transactions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 transactions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ */
 datasetsRouter.get('/:id/transactions', (req: Request, res: Response) => {
   const dataset = getDataset(req.params.id);
   if (!dataset) return res.status(404).json({ error: 'Dataset not found' });
@@ -47,7 +177,44 @@ datasetsRouter.get('/:id/transactions', (req: Request, res: Response) => {
   return res.json({ success: true, transactions });
 });
 
-// POST /api/datasets — create new listing
+/**
+ * @openapi
+ * /api/datasets:
+ *   post:
+ *     summary: Create a new dataset
+ *     description: List a new dataset on the platform
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - description
+ *               - type
+ *               - pricePerQuery
+ *               - sellerWallet
+ *               - data
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               pricePerQuery:
+ *                 type: number
+ *               sellerWallet:
+ *                 type: string
+ *               data:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Dataset created successfully
+ *       400:
+ *         description: Missing required fields or invalid price
+ */
 datasetsRouter.post('/', (req: Request, res: Response) => {
   const { name, description, type, pricePerQuery, sellerWallet, data } = req.body;
 
