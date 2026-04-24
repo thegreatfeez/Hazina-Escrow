@@ -19,12 +19,12 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <I18nProvider>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <I18nProvider>
           <App />
-        </QueryClientProvider>
-      </HelmetProvider>
-    </I18nProvider>
+        </I18nProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   </React.StrictMode>
 );
