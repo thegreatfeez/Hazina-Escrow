@@ -12,6 +12,101 @@ import { sendUsdcPayment } from '../agent/agent.wallet';
 
 export const paymentsRouter = Router();
 
+/**
+ * @openapi
+ * /api/query/{id}:
+ *   post:
+ *     summary: Initiate a dataset query
+ *     description: Returns a 402 Payment Required response with payment instructions and memo
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       402:
+ *         description: Payment Required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 x402:
+ *                   type: boolean
+ *                 dataset:
+ *                   type: object
+ *                 payment:
+ *                   type: object
+ *       404:
+ *         description: Dataset not found
+ */
+
+/**
+ * @openapi
+ * /api/verify/{id}:
+ *   post:
+ *     summary: Verify payment and release data
+ *     description: Verifies the Stellar payment transaction and releases the dataset content with an AI summary
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - txHash
+ *             properties:
+ *               txHash:
+ *                 type: string
+ *               buyerQuestion:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Data released successfully
+ *       400:
+ *         description: Invalid transaction hash or payment
+ *       404:
+ *         description: Dataset not found
+ */
+
+/**
+ * @openapi
+ * /api/verify/{id}/demo:
+ *   post:
+ *     summary: Verify payment in demo mode (skip on-chain check)
+ *     description: releases the dataset content with an AI summary without requiring a real Stellar transaction
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               buyerQuestion:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Data released successfully (demo mode)
+ *       404:
+ *         description: Dataset not found
+ */
+
+
 // POST /api/query/:id — initiate query, returns 402 Payment Required
 paymentsRouter.post('/query/:id', (req: Request, res: Response) => {
   const dataset = getDataset(req.params.id);

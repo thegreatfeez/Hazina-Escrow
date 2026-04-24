@@ -4,6 +4,97 @@ import { getAgentPublicKey } from './agent.wallet';
 
 export const agentRouter = Router();
 
+/**
+ * @openapi
+ * /api/agent/info:
+ *   get:
+ *     summary: Get agent information
+ *     description: Retrieve details about the Hazina Research Agent, including its wallet address and fee structure
+ *     responses:
+ *       200:
+ *         description: Agent information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 agent:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     version:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     agentWallet:
+ *                       type: string
+ *                     fee:
+ *                       type: object
+ *                     sellers:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ */
+
+/**
+ * @openapi
+ * /api/agent/research:
+ *   post:
+ *     summary: Run autonomous research job
+ *     description: Starts a research job using the autonomous agent. Requires a 1 USDC Stellar payment.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - query
+ *               - txHash
+ *             properties:
+ *               query:
+ *                 type: string
+ *                 minLength: 5
+ *               txHash:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Research job completed
+ *       400:
+ *         description: Invalid query or transaction hash
+ *       402:
+ *         description: Payment Required or verification failed
+ */
+
+/**
+ * @openapi
+ * /api/agent/research/demo:
+ *   post:
+ *     summary: Run research job in demo mode
+ *     description: Simulates an autonomous research job without requiring real payments
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - query
+ *             properties:
+ *               query:
+ *                 type: string
+ *                 minLength: 5
+ *     responses:
+ *       200:
+ *         description: Research job completed (demo mode)
+ *       400:
+ *         description: Invalid query
+ */
+
+
 // GET /api/agent/info — agent wallet address and capabilities
 agentRouter.get('/info', (_req: Request, res: Response) => {
   res.json({

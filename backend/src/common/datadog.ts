@@ -9,7 +9,6 @@ export function initializeDatadog(): void {
     service: process.env.DATADOG_SERVICE || 'hazina-escrow-api',
     env: process.env.NODE_ENV || 'development',
     version: process.env.DATADOG_VERSION || '1.0.0',
-    enabled: true,
     logInjection: true,
   });
 

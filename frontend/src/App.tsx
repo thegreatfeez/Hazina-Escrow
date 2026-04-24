@@ -16,9 +16,17 @@ function ScrollToTop() {
   return null;
 }
 
+import { Helmet } from "react-helmet-async";
+
 export default function App() {
   return (
     <BrowserRouter>
+      <Helmet
+        defaultTitle="Hazina — Data Escrow Marketplace"
+        titleTemplate="%s | Hazina"
+      >
+        <meta name="description" content="Decentralized data escrow and research platform using Stellar micropayments." />
+      </Helmet>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-gold focus:text-void focus:rounded-lg focus:font-semibold focus:outline-none focus:ring-2 focus:ring-gold-light"

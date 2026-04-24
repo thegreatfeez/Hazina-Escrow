@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
 import {
   Search,
   SlidersHorizontal,
@@ -32,8 +34,6 @@ const SORT_OPTIONS = [
 ];
 
 export default function MarketplacePage() {
-  const [datasets, setDatasets] = useState<DatasetMeta[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [sort, setSort] = useState("popular");
@@ -41,36 +41,43 @@ export default function MarketplacePage() {
     null,
   );
 
-  useEffect(() => {
-    api
-      .getDatasets()
-      .then(setDatasets)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: datasets = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ["datasets"],
+    queryFn: api.getDatasets,
+  });
 
-  const filtered = datasets
-    .filter((d) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        !q ||
-        d.name.toLowerCase().includes(q) ||
-        d.description.toLowerCase().includes(q);
-      const matchType = !typeFilter || d.type === typeFilter;
-      return matchSearch && matchType;
-    })
-    .sort((a, b) => {
-      if (sort === "popular") return b.queriesServed - a.queriesServed;
-      if (sort === "price-asc") return a.pricePerQuery - b.pricePerQuery;
-      if (sort === "price-desc") return b.pricePerQuery - a.pricePerQuery;
-      if (sort === "newest")
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      return 0;
-    });
+  const filtered = useMemo(() => {
+    return datasets
+      .filter((d) => {
+        const q = search.toLowerCase();
+        const matchSearch =
+          !q ||
+          d.name.toLowerCase().includes(q) ||
+          d.description.toLowerCase().includes(q);
+        const matchType = !typeFilter || d.type === typeFilter;
+        return matchSearch && matchType;
+      })
+      .sort((a, b) => {
+        if (sort === "popular") return b.queriesServed - a.queriesServed;
+        if (sort === "price-asc") return a.pricePerQuery - b.pricePerQuery;
+        if (sort === "price-desc") return b.pricePerQuery - a.pricePerQuery;
+        if (sort === "newest")
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        return 0;
+      });
+  }, [datasets, search, typeFilter, sort]);
 
   return (
     <div className="min-h-screen pt-28 pb-20">
+      <Helmet>
+        <title>Marketplace | Premium Web3 Data</title>
+        <meta name="description" content="Browse and buy premium on-chain intelligence datasets. Real-time whale movements, yield data, and sentiment analysis." />
+        <meta property="og:title" content="Hazina Data Marketplace" />
+        <meta property="og:description" content="Premium on-chain intelligence, priced per query." />
+      </Helmet>
+
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-10">
@@ -187,7 +194,7 @@ export default function MarketplacePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((ds) => (
+            {filtered.map((ds: DatasetMeta) => (
               <DatasetCard
                 key={ds.id}
                 dataset={ds}
@@ -203,10 +210,8 @@ export default function MarketplacePage() {
         <QueryModal
           dataset={selectedDataset}
           onClose={() => setSelectedDataset(null)}
-          onSuccess={(updated) => {
-            setDatasets((prev) =>
-              prev.map((d) => (d.id === updated.id ? { ...d, ...updated } : d)),
-            );
+          onSuccess={() => {
+            refetch();
             setSelectedDataset(null);
           }}
         />
