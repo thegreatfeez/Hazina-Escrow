@@ -1,0 +1,133 @@
+version: 2
+
+updates:
+  # Root workspace (husky, lint-staged, concurrently, eslint, prettier, etc.)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "typescript-eslint"
+          - "globals"
+      prettier:
+        patterns:
+          - "prettier*"
+      husky-lint-staged:
+        patterns:
+          - "husky"
+          - "lint-staged"
+
+  # Backend workspace
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+      - "backend"
+    commit-message:
+      prefix: "chore(deps/backend)"
+    groups:
+      stellar:
+        patterns:
+          - "@stellar/*"
+      anthropic:
+        patterns:
+          - "@anthropic-ai/*"
+      types:
+        patterns:
+          - "@types/*"
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "supertest"
+
+  # Frontend workspace
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+      - "frontend"
+    commit-message:
+      prefix: "chore(deps/frontend)"
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-*"
+          - "@types/react*"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      storybook:
+        patterns:
+          - "storybook"
+          - "@storybook/*"
+      vite:
+        patterns:
+          - "vite"
+          - "vite-*"
+          - "@vitejs/*"
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+
+  # Stellar smart contracts (Rust/Cargo)
+  - package-ecosystem: "cargo"
+    directory: "/contracts/hazina-escrow"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "cargo"
+      - "contracts"
+    commit-message:
+      prefix: "chore(deps/contracts)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps/actions)"
