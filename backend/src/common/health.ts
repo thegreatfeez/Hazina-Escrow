@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { getAllCircuitBreakerStats } from './circuit-breaker';
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -11,6 +12,7 @@ interface HealthStatus {
       responseTime?: number;
     };
   };
+  circuitBreakers: ReturnType<typeof getAllCircuitBreakerStats>;
 }
 
 export async function checkHealth(): Promise<HealthStatus> {
@@ -20,7 +22,7 @@ export async function checkHealth(): Promise<HealthStatus> {
   };
 
   const hasError = Object.values(checks).some(
-    (check) => check.status === 'error' || check.status === 'unavailable'
+    check => check.status === 'error' || check.status === 'unavailable',
   );
 
   const status: HealthStatus['status'] = hasError ? 'degraded' : 'healthy';
@@ -30,6 +32,7 @@ export async function checkHealth(): Promise<HealthStatus> {
     timestamp,
     service: 'Hazina Escrow API',
     checks,
+    circuitBreakers: getAllCircuitBreakerStats(),
   };
 }
 
