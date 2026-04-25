@@ -1,3 +1,48 @@
+const BASE = '/api';
+const REQUEST_THROTTLE_MS = 250;
+
+const requestQueues = new Map<string, Promise<void>>();
+const requestStartedAt = new Map<string, number>();
+
+function sleep(ms: number) {
+  return new Promise<void>(resolve => setTimeout(resolve, ms));
+}
+
+function getRequestKey(url: string, options?: RequestInit) {
+  const method = (options?.method ?? 'GET').toUpperCase();
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+  const { pathname } = new URL(url, origin);
+  return `${method}:${pathname}`;
+}
+
+async function scheduleRequest<T>(key: string, task: () => Promise<T>): Promise<T> {
+  const previous = requestQueues.get(key) ?? Promise.resolve();
+
+  const scheduled = previous.then(async () => {
+    const lastStarted = requestStartedAt.get(key) ?? 0;
+    const elapsed = Date.now() - lastStarted;
+
+    if (elapsed < REQUEST_THROTTLE_MS) {
+      await sleep(REQUEST_THROTTLE_MS - elapsed);
+    }
+
+    requestStartedAt.set(key, Date.now());
+    return task();
+  });
+
+  const tracked = scheduled.then(
+    () => undefined,
+    () => undefined,
+  );
+
+  requestQueues.set(key, tracked);
+
+  return scheduled.finally(() => {
+    if (requestQueues.get(key) === tracked) {
+      requestQueues.delete(key);
+    }
+  });
+}
 const RAW_API_URL = (import.meta.env.VITE_API_URL ?? '').toString().trim();
 export const API_BASE_URL = RAW_API_URL
   ? `${RAW_API_URL.replace(/\/+$/, '')}/api`
@@ -115,6 +160,33 @@ export interface QueryResult {
   };
 }
 
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  return scheduleRequest(getRequestKey(url, options), async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
+    try {
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        ...options,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Network error' }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      return res.json();
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error('Request timed out — please try again');
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeout);
+    }
+  });
 export const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 export const AGENT_REQUEST_TIMEOUT_MS = 120_000;
 
@@ -256,7 +328,7 @@ export const api = {
 
   getDataset: (id: string) =>
     request<{ success: boolean; dataset: DatasetMeta }>(`${BASE}/datasets/${id}`).then(
-      (r) => r.dataset
+      r => r.dataset,
     ),
 
   getTransactions: (datasetId?: string) => {
@@ -264,11 +336,15 @@ export const api = {
       ? `${BASE}/datasets/${datasetId}/transactions`
       : `${BASE}/datasets/transactions`;
     return request<{ success: boolean; transactions: Transaction[] }>(url).then(
-      (r) => r.transactions
+      r => r.transactions,
     );
   },
 
   initiateQuery: (id: string) =>
+    request<{ payment: { paymentAddress: string; amount: number; memo: string } }>(
+      `${BASE}/query/${id}`,
+      { method: 'POST' },
+    ),
     fetchWithTimeout(`${BASE}/query/${id}`, { method: 'POST' }).then((r) => r.json()),
 
   verifyPayment: (id: string, txHash: string, buyerQuestion?: string) =>
@@ -283,8 +359,7 @@ export const api = {
       body: JSON.stringify({ buyerQuestion }),
     }),
 
-  agentInfo: () =>
-    request<AgentInfo>(`${BASE}/agent/info`),
+  agentInfo: () => request<AgentInfo>(`${BASE}/agent/info`),
 
   agentDemo: (query: string) =>
     request<AgentJob>(`${BASE}/agent/research/demo`, {
@@ -312,5 +387,10 @@ export const api = {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify(payload),
-    }).then((r) => r.dataset),
+    }).then(r => r.dataset),
 };
+
+export function __resetRequestThrottleForTests() {
+  requestQueues.clear();
+  requestStartedAt.clear();
+}
