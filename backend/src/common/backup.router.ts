@@ -1,5 +1,20 @@
 import { Router, Request, Response } from 'express';
+import { z } from 'zod';
 import { BackupScheduler } from './backup.scheduler';
+import { validateBody } from './validate';
+
+const restoreBackupSchema = z.object({
+  filename: z
+    .string()
+    .trim()
+    .min(1, 'filename is required')
+    .max(255, 'filename must be at most 255 characters')
+    .regex(
+      /^[A-Za-z0-9._-]+$/,
+      'filename must contain only letters, numbers, dots, dashes, and underscores',
+    )
+    .refine((value) => !value.includes('..'), 'filename must not contain path traversal sequences'),
+});
 
 let backupScheduler: BackupScheduler | null = null;
 
@@ -104,16 +119,12 @@ backupRouter.post('/backups/create', async (_req: Request, res: Response) => {
  *       200:
  *         description: Backup restored successfully
  */
-backupRouter.post('/backups/restore', async (req: Request, res: Response) => {
+backupRouter.post('/backups/restore', validateBody(restoreBackupSchema), async (req: Request, res: Response) => {
   if (!backupScheduler) {
     return res.status(503).json({ error: 'Backup service not initialized' });
   }
 
-  const { filename } = req.body;
-
-  if (!filename) {
-    return res.status(400).json({ error: 'Filename is required' });
-  }
+  const { filename } = req.body as z.infer<typeof restoreBackupSchema>;
 
   try {
     await backupScheduler.getBackupService().restoreBackup(filename);

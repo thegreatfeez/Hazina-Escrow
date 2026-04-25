@@ -1,4 +1,9 @@
-const BASE = '/api';
+const RAW_API_URL = (import.meta.env.VITE_API_URL ?? '').toString().trim();
+export const API_BASE_URL = RAW_API_URL
+  ? `${RAW_API_URL.replace(/\/+$/, '')}/api`
+  : '/api';
+
+const BASE = API_BASE_URL;
 
 export interface AgentSellerPayment {
   seller: string;
