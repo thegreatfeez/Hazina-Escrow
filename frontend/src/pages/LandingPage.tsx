@@ -16,6 +16,7 @@ import {
 import { api, DatasetMeta } from "../lib/api";
 import { useCountUp } from "../hooks/useCountUp";
 import DatasetCard from "../components/ui/DatasetCard";
+import { DatasetCardSkeleton } from "../components/ui/SkeletonLoader";
 import clsx from "clsx";
 import { useI18n } from "../i18n";
 
@@ -107,17 +108,35 @@ export default function LandingPage() {
     totalUsdcEarned: 0,
   });
   const [featured, setFeatured] = useState<DatasetMeta[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [featuredError, setFeaturedError] = useState<string | null>(null);
 
   useEffect(() => {
     api
       .getStats()
-      .then(setStats)
-      .catch(() => {});
+      .then((data) => {
+        setStats(data);
+        setStatsError(null);
+      })
+      .catch((err: unknown) => {
+        setStatsError(
+          err instanceof Error ? err.message : "Failed to load statistics.",
+        );
+      });
     api
       .getDatasets()
-      .then((ds) => setFeatured(ds.slice(0, 3)))
-      .catch(() => {});
+      .then((ds) => {
+        setFeatured(ds.slice(0, 3));
+        setFeaturedError(null);
+      })
+      .catch((err: unknown) => {
+        setFeaturedError(
+          err instanceof Error ? err.message : "Failed to load featured datasets.",
+        );
+      })
+      .finally(() => setFeaturedLoading(false));
     const timer = setTimeout(() => setLoaded(true), 100);
     return () => clearTimeout(timer);
   }, []);
@@ -205,6 +224,13 @@ export default function LandingPage() {
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
+
+          {/* Stats error notice */}
+          {statsError && (
+            <p className="text-xs text-red-400 font-body text-center mb-2 opacity-75">
+              {statsError}
+            </p>
+          )}
 
           {/* Stats bar */}
           <div className="flex flex-wrap justify-center gap-4">
@@ -373,8 +399,17 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Featured datasets error notice */}
+      {featuredError && (
+        <section className="py-6">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <p className="text-sm text-red-400 font-body opacity-75">{featuredError}</p>
+          </div>
+        </section>
+      )}
+
       {/* ── FEATURED DATASETS ── */}
-      {featured.length > 0 && (
+      {!featuredError && (featuredLoading || featured.length > 0) && (
         <section className="py-24 relative">
           <div className="absolute inset-0 pattern-dense" />
           <div className="relative max-w-6xl mx-auto px-4">
@@ -397,20 +432,26 @@ export default function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featured.map((ds) => (
-                <DatasetCard key={ds.id} dataset={ds} onBuy={() => {}} />
-              ))}
+              {featuredLoading
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <DatasetCardSkeleton key={i} />
+                  ))
+                : featured.map((ds) => (
+                    <DatasetCard key={ds.id} dataset={ds} onBuy={() => {}} />
+                  ))}
             </div>
 
-            <div className="text-center mt-10">
-              <Link
-                to="/marketplace"
-                className="btn-gold text-base px-8 py-4 inline-flex items-center gap-2"
-              >
-                <Database className="w-5 h-5" />
-                {t("landing.featured.browseAll")}
-              </Link>
-            </div>
+            {!featuredLoading && (
+              <div className="text-center mt-10">
+                <Link
+                  to="/marketplace"
+                  className="btn-gold text-base px-8 py-4 inline-flex items-center gap-2"
+                >
+                  <Database className="w-5 h-5" />
+                  {t("landing.featured.browseAll")}
+                </Link>
+              </div>
+            )}
           </div>
         </section>
       )}

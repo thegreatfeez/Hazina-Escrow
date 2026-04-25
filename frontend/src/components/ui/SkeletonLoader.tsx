@@ -1,3 +1,4 @@
+
 import clsx from "clsx";
 
 interface SkeletonProps {
@@ -135,6 +136,21 @@ export function ChartSkeleton() {
             />
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+export function AgentResultSkeleton() {
+  return (
+    <div className="glass-card p-6 animate-pulse space-y-4">
+      <Skeleton variant="text" width="33%" height={20} />
+      <Skeleton variant="text" width="100%" height={16} />
+      <Skeleton variant="text" width="83%" height={16} />
+      <div className="grid grid-cols-3 gap-4 pt-2">
+        <Skeleton variant="rounded" width="100%" height={80} />
+        <Skeleton variant="rounded" width="100%" height={80} />
+        <Skeleton variant="rounded" width="100%" height={80} />
       </div>
     </div>
   );
