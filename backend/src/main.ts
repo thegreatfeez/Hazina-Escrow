@@ -1,41 +1,68 @@
-import { initializeDatadog } from "./common/datadog";
-import dotenv from "dotenv";
+import { initializeDatadog } from './common/datadog';
+import dotenv from 'dotenv';
 
 dotenv.config();
 initializeDatadog();
 
-import express from "express";
-import cors from "cors";
-import { datasetsRouter } from "./datasets/datasets.router";
-import { paymentsRouter } from "./payments/payments.router";
-import { agentRouter } from "./agent/agent.router";
-import { webhooksRouter } from "./webhooks/webhook.router";
-import { checkHealth } from "./common/health";
-import express from 'express';
+import express, { Request } from 'express';
 import cors from 'cors';
-import pinoHttp from 'pino-http';
+import path from 'path';
+import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-import path from 'path';
+
 import { datasetsRouter } from './datasets/datasets.router';
 import { paymentsRouter } from './payments/payments.router';
 import { agentRouter } from './agent/agent.router';
-import { checkHealth } from './common/health';
-import { rateLimitMiddleware } from './common/rateLimit';
-import { logger } from './lib/logger';
-import { errorHandler } from './common/errorMiddleware';
+import { webhooksRouter } from './webhooks/webhook.router';
+import { readStore } from './common/storage';
 import { BackupScheduler } from './common/backup.scheduler';
 import { backupRouter, setBackupScheduler } from './common/backup.router';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(pinoHttp({ logger }));
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '10mb' }));
 
-// Apply rate limiting to all API routes
-app.use('/api', rateLimitMiddleware);
+// Rate limiting — global + per-route limits for sensitive endpoints
+const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
+const ONE_HOUR_MS = 60 * 60 * 1000;
+
+const isDemoRoute = (req: Request): boolean =>
+  req.originalUrl.split('?')[0].endsWith('/demo');
+
+const globalLimiter = rateLimit({
+  windowMs: FIFTEEN_MINUTES_MS,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests' },
+});
+
+const strictLimiter = rateLimit({
+  windowMs: FIFTEEN_MINUTES_MS,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: isDemoRoute,
+  message: { error: 'Too many requests' },
+});
+
+const demoLimiter = rateLimit({
+  windowMs: ONE_HOUR_MS,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests' },
+});
+
+// Demo limiters first (more specific), then strict, then global on /api
+app.use('/api/verify/:id/demo', demoLimiter);
+app.use('/api/agent/research/demo', demoLimiter);
+app.use('/api/verify', strictLimiter);
+app.use('/api/agent/research', strictLimiter);
+app.use('/api', globalLimiter);
 
 // Initialize backup scheduler
 const backupEnabled = process.env.BACKUP_ENABLED !== 'false';
@@ -85,33 +112,84 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Health check with service monitoring
-app.get("/health", async (_req, res) => {
+const HEALTH_TIMEOUT_MS = 3000;
+const HORIZON_URL = "https://horizon-testnet.stellar.org/";
+
+type CheckResult = "ok" | "error";
+
+async function withHealthTimeout(
+  fn: () => Promise<CheckResult>,
+): Promise<CheckResult> {
+  return Promise.race<CheckResult>([
+    fn().catch(() => "error"),
+    new Promise<CheckResult>((resolve) =>
+      setTimeout(() => resolve("error"), HEALTH_TIMEOUT_MS),
+    ),
+  ]);
+}
+
+async function checkStorage(): Promise<CheckResult> {
   try {
-    const health = await checkHealth();
-    const statusCode = health.status === "healthy" ? 200 : 503;
-    res.status(statusCode).json(health);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    res.status(500).json({
-      status: "unhealthy",
-      timestamp: new Date().toISOString(),
-      service: "Hazina Escrow API",
-      error: message,
-    });
+    readStore();
+    return "ok";
+  } catch {
+    return "error";
   }
+}
+
+async function checkAnthropic(): Promise<CheckResult> {
+  return process.env.ANTHROPIC_API_KEY ? "ok" : "error";
+}
+
+async function checkStellar(): Promise<CheckResult> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
+  try {
+    const response = await fetch(HORIZON_URL, {
+      method: "GET",
+      signal: controller.signal,
+    });
+    return response.ok ? "ok" : "error";
+  } catch {
+    return "error";
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+app.get("/health", async (_req, res) => {
+  const [storage, anthropic, stellar] = await Promise.all([
+    withHealthTimeout(checkStorage),
+    withHealthTimeout(checkAnthropic),
+    withHealthTimeout(checkStellar),
+  ]);
+
+  const checks = { storage, anthropic, stellar };
+  const allOk =
+    storage === "ok" && anthropic === "ok" && stellar === "ok";
+
+  res.status(allOk ? 200 : 503).json({
+    status: allOk ? "ok" : "degraded",
+    checks,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Routes
-app.use("/api/datasets", datasetsRouter);
-app.use("/api", paymentsRouter);
-app.use("/api/agent", agentRouter);
-app.use("/api/webhooks", webhooksRouter);
-
-// Global Error Handler (MUST be last)
-app.use(errorHandler);
+app.use('/api/datasets', datasetsRouter);
+app.use('/api', paymentsRouter);
+app.use('/api/agent', agentRouter);
+app.use('/api/webhooks', webhooksRouter);
+app.use('/api', backupRouter);
 
 app.listen(PORT, () => {
-  logger.info(`Data Escrow API running on http://localhost:${PORT}`);
+  console.log(`\n  ██╗  ██╗ █████╗ ███████╗██╗███╗   ██╗ █████╗`);
+  console.log(`  ██║  ██║██╔══██╗╚══███╔╝██║████╗  ██║██╔══██╗`);
+  console.log(`  ███████║███████║  ███╔╝ ██║██╔██╗ ██║███████║`);
+  console.log(`  ██╔══██║██╔══██║ ███╔╝  ██║██║╚██╗██║██╔══██║`);
+  console.log(`  ██║  ██║██║  ██║███████╗██║██║ ╚████║██║  ██║`);
+  console.log(`  ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝`);
+  console.log(`\n  Data Escrow API running on http://localhost:${PORT}\n`);
 });
 
 export default app;
