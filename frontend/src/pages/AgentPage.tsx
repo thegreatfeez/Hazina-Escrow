@@ -12,6 +12,7 @@ import {
   Activity,
 } from 'lucide-react';
 import { api, AgentJob } from '../lib/api';
+import { AgentResultSkeleton } from '../components/ui/SkeletonLoader';
 import clsx from 'clsx';
 import { getCatalog, useI18n } from '../i18n';
 
@@ -162,18 +163,7 @@ export default function AgentPage() {
         </div>
 
         {/* Loading skeleton */}
-        {loading && (
-          <div className="glass-card p-6 animate-pulse space-y-4">
-            <div className="h-5 bg-surface-2 rounded w-1/3" />
-            <div className="h-4 bg-surface-2 rounded w-full" />
-            <div className="h-4 bg-surface-2 rounded w-5/6" />
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              <div className="h-20 bg-surface-2 rounded-xl" />
-              <div className="h-20 bg-surface-2 rounded-xl" />
-              <div className="h-20 bg-surface-2 rounded-xl" />
-            </div>
-          </div>
-        )}
+        {loading && <AgentResultSkeleton />}
 
         {/* Error */}
         {error && (
