@@ -179,7 +179,7 @@ agentRouter.post('/research', validateBody(researchSchema), async (req: Request,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Research agent error';
-    logger.error({ err }, '[Agent] Error');
+    console.error('[Agent] Error:', err);
 
     if (message.includes('Payment verification failed') || message.includes('verification failed')) {
       return res.status(402).json({ error: message });
@@ -229,7 +229,7 @@ agentRouter.post('/research/demo', validateBody(researchDemoSchema), async (req:
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Research agent error';
-    logger.error({ err }, '[Agent][Demo] Error');
+    console.error('[Agent][Demo] Error:', err);
     return res.status(500).json({ error: message });
   }
 });

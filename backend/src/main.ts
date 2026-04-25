@@ -22,7 +22,6 @@ import { backupRouter, setBackupScheduler } from './common/backup.router';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(pinoHttp({ logger }));
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '10mb' }));
 
@@ -183,11 +182,14 @@ app.use('/api/agent', agentRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api', backupRouter);
 
-// Global Error Handler (MUST be last)
-app.use(errorHandler);
-
 app.listen(PORT, () => {
-  logger.info(`Data Escrow API running on http://localhost:${PORT}`);
+  console.log(`\n  ██╗  ██╗ █████╗ ███████╗██╗███╗   ██╗ █████╗`);
+  console.log(`  ██║  ██║██╔══██╗╚══███╔╝██║████╗  ██║██╔══██╗`);
+  console.log(`  ███████║███████║  ███╔╝ ██║██╔██╗ ██║███████║`);
+  console.log(`  ██╔══██║██╔══██║ ███╔╝  ██║██║╚██╗██║██╔══██║`);
+  console.log(`  ██║  ██║██║  ██║███████╗██║██║ ╚████║██║  ██║`);
+  console.log(`  ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝`);
+  console.log(`\n  Data Escrow API running on http://localhost:${PORT}\n`);
 });
 
 export default app;
