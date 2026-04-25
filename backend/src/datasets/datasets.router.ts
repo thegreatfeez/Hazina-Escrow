@@ -6,6 +6,7 @@ import {
   getDataset,
   addDataset,
   getTransactions,
+  getTransactionsCount,
   Dataset,
 } from '../common/storage';
 import { validateBody } from '../common/validate';
@@ -242,8 +243,13 @@ datasetsRouter.get('/:id', (req: Request, res: Response) => {
 datasetsRouter.get('/:id/transactions', (req: Request, res: Response) => {
   const dataset = getDataset(req.params.id);
   if (!dataset) return res.status(404).json({ error: 'Dataset not found' });
-  const transactions = getTransactions(req.params.id);
-  return res.json({ success: true, transactions });
+  
+  const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+  const offset = parseInt(req.query.offset as string) || 0;
+  const transactions = getTransactions(req.params.id, limit, offset);
+  const total = getTransactionsCount(req.params.id);
+  
+  return res.json({ success: true, transactions, total, limit, offset });
 });
 
 /**
