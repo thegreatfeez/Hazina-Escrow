@@ -8,6 +8,7 @@ export interface ResearchInput {
   whaleData: Record<string, unknown>;
   riskData: Record<string, unknown>;
   sentimentData: Record<string, unknown>;
+  datasetCosts: Record<string, number>;
 }
 
 export interface ResearchReport {
@@ -35,19 +36,19 @@ BUDGET: $${input.budget} USDC
 RISK TOLERANCE: ${input.riskTolerance}
 
 ---
-DATASET 1 — YIELD DATA (purchased for 0.02 USDC):
+DATASET 1 — YIELD DATA (purchased for ${input.datasetCosts['yieldData'] ?? 'unknown'} USDC):
 ${JSON.stringify(input.yieldData, null, 2)}
 
 ---
-DATASET 2 — WHALE WALLET MOVEMENTS (purchased for 0.05 USDC):
+DATASET 2 — WHALE WALLET MOVEMENTS (purchased for ${input.datasetCosts['whaleData'] ?? 'unknown'} USDC):
 ${JSON.stringify(input.whaleData, null, 2)}
 
 ---
-DATASET 3 — RISK SCORES (purchased for 0.03 USDC):
+DATASET 3 — RISK SCORES (purchased for ${input.datasetCosts['riskData'] ?? 'unknown'} USDC):
 ${JSON.stringify(input.riskData, null, 2)}
 
 ---
-DATASET 4 — MARKET SENTIMENT (purchased for 0.04 USDC):
+DATASET 4 — MARKET SENTIMENT (purchased for ${input.datasetCosts['sentimentData'] ?? 'unknown'} USDC):
 ${JSON.stringify(input.sentimentData, null, 2)}
 
 ---
