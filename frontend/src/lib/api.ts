@@ -115,28 +115,41 @@ export interface QueryResult {
   };
 }
 
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
+export const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+export const AGENT_REQUEST_TIMEOUT_MS = 120_000;
+
+interface RequestOptions extends RequestInit {
+  /** Per-call override of the abort timeout, in milliseconds. */
+  timeoutMs?: number;
+}
+
+async function fetchWithTimeout(url: string, options?: RequestOptions): Promise<Response> {
+  const { timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS, ...init } = options ?? {};
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
+    return await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
-      ...options,
+      ...init,
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: 'Network error' }));
-      throw new Error(err.error || `HTTP ${res.status}`);
-    }
-    return res.json();
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
       throw new Error('Request timed out — please try again');
     }
     throw err;
   } finally {
-    clearTimeout(timeout);
+    clearTimeout(timer);
   }
+}
+
+async function request<T>(url: string, options?: RequestOptions): Promise<T> {
+  const res = await fetchWithTimeout(url, options);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Network error' }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
 }
 
 export const api = {
@@ -178,7 +191,7 @@ export const api = {
   },
 
   initiateQuery: (id: string) =>
-    fetch(`${BASE}/query/${id}`, { method: 'POST' }).then((r) => r.json()),
+    fetchWithTimeout(`${BASE}/query/${id}`, { method: 'POST' }).then((r) => r.json()),
 
   verifyPayment: (id: string, txHash: string, buyerQuestion?: string) =>
     request<QueryResult>(`${BASE}/verify/${id}`, {
@@ -199,12 +212,14 @@ export const api = {
     request<AgentJob>(`${BASE}/agent/research/demo`, {
       method: 'POST',
       body: JSON.stringify({ query }),
+      timeoutMs: AGENT_REQUEST_TIMEOUT_MS,
     }),
 
   agentResearch: (query: string, txHash: string) =>
     request<AgentJob>(`${BASE}/agent/research`, {
       method: 'POST',
       body: JSON.stringify({ query, txHash }),
+      timeoutMs: AGENT_REQUEST_TIMEOUT_MS,
     }),
 
   createDataset: (payload: {
