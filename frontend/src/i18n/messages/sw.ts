@@ -194,6 +194,12 @@ export const sw: EnglishMessages = {
     subtitle:
       "Maarifa bora ya on-chain, yenye bei kwa kila swali. Lipa tu kwa unachohitaji.",
     searchPlaceholder: "Tafuta dataset...",
+    pagination: {
+      previous: "Iliyotangulia",
+      next: "Ifuatayo",
+      page: "Ukurasa wa {current} kati ya {total}",
+      showing: "Inaonyesha {start}-{end} kati ya {total}",
+    },
     sorts: {
       popular: "Maarufu zaidi",
       priceAsc: "Bei: chini hadi juu",

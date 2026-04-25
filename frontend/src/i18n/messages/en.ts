@@ -194,6 +194,12 @@ export const en = {
     subtitle:
       "Premium on-chain intelligence, priced per query. Pay only for what you need.",
     searchPlaceholder: "Search datasets...",
+    pagination: {
+      previous: "Previous",
+      next: "Next",
+      page: "Page {current} of {total}",
+      showing: "Showing {start}-{end} of {total}",
+    },
     sorts: {
       popular: "Most Popular",
       priceAsc: "Price: Low → High",

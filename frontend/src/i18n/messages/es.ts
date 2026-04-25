@@ -194,6 +194,12 @@ export const es: EnglishMessages = {
     subtitle:
       "Inteligencia on-chain premium, con precio por consulta. Paga solo por lo que necesitas.",
     searchPlaceholder: "Buscar datasets...",
+    pagination: {
+      previous: "Anterior",
+      next: "Siguiente",
+      page: "Página {current} de {total}",
+      showing: "Mostrando {start}-{end} de {total}",
+    },
     sorts: {
       popular: "Más popular",
       priceAsc: "Precio: menor a mayor",

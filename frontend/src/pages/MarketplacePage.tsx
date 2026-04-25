@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import {
@@ -8,6 +8,8 @@ import {
   Clock,
   DollarSign,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { api, DatasetMeta } from "../lib/api";
 import { DATA_TYPE_META } from "../lib/utils";
@@ -22,9 +24,11 @@ export default function MarketplacePage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [sort, setSort] = useState("popular");
+  const [page, setPage] = useState(1);
   const [selectedDataset, setSelectedDataset] = useState<DatasetMeta | null>(
     null,
   );
+  const pageSize = 9;
 
   const { data: datasets = [], isLoading: loading, refetch } = useQuery<DatasetMeta[]>({
     queryKey: ["datasets"],
@@ -53,6 +57,28 @@ export default function MarketplacePage() {
         return 0;
       });
   }, [datasets, search, typeFilter, sort]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, sort, typeFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [currentPage, filtered]);
+  const pageStart = filtered.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = filtered.length === 0 ? 0 : Math.min(currentPage * pageSize, filtered.length);
+  const visiblePages = useMemo(() => {
+    const start = Math.max(1, currentPage - 1);
+    const end = Math.min(totalPages, start + 2);
+    const normalizedStart = Math.max(1, end - 2);
+    return Array.from(
+      { length: end - normalizedStart + 1 },
+      (_, index) => normalizedStart + index,
+    );
+  }, [currentPage, totalPages]);
 
   const typeFilters = [
     { value: "", label: t("dataTypes.all") },
@@ -166,13 +192,22 @@ export default function MarketplacePage() {
               t("common.labels.loading")
             ) : (
               <>
-                <span className="text-foreground font-medium">
-                  {filtered.length.toLocaleString(locale)}
-                </span>{" "}
-                {t("common.units.datasetsFound")}
+                {t("marketplace.pagination.showing", {
+                  start: pageStart.toLocaleString(locale),
+                  end: pageEnd.toLocaleString(locale),
+                  total: filtered.length.toLocaleString(locale),
+                })}
               </>
             )}
           </p>
+          {!loading && filtered.length > 0 && (
+            <p className="text-sm text-foreground-muted font-body">
+              {t("marketplace.pagination.page", {
+                current: currentPage.toLocaleString(locale),
+                total: totalPages.toLocaleString(locale),
+              })}
+            </p>
+          )}
         </div>
 
         {/* Grid */}
@@ -195,15 +230,65 @@ export default function MarketplacePage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((ds: DatasetMeta) => (
-              <DatasetCard
-                key={ds.id}
-                dataset={ds}
-                onBuy={setSelectedDataset}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginated.map((ds: DatasetMeta) => (
+                <DatasetCard
+                  key={ds.id}
+                  dataset={ds}
+                  onBuy={setSelectedDataset}
+                />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={clsx(
+                    "btn-ghost px-4 py-2 text-sm flex items-center gap-2",
+                    currentPage === 1 && "opacity-50 cursor-not-allowed",
+                  )}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  {t("marketplace.pagination.previous")}
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {visiblePages.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => setPage(pageNumber)}
+                      className={clsx(
+                        "w-10 h-10 rounded-xl text-sm font-body font-medium transition-all duration-200",
+                        currentPage === pageNumber
+                          ? "bg-gold text-void"
+                          : "bg-surface-2 text-foreground-muted hover:text-foreground hover:bg-surface",
+                      )}
+                    >
+                      {pageNumber.toLocaleString(locale)}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={clsx(
+                    "btn-ghost px-4 py-2 text-sm flex items-center gap-2",
+                    currentPage === totalPages && "opacity-50 cursor-not-allowed",
+                  )}
+                >
+                  {t("marketplace.pagination.next")}
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

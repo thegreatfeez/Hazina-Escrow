@@ -194,6 +194,12 @@ export const fr: EnglishMessages = {
     subtitle:
       "Une intelligence on-chain premium, tarifée par requête. Ne payez que ce dont vous avez besoin.",
     searchPlaceholder: "Rechercher des datasets...",
+    pagination: {
+      previous: "Précédent",
+      next: "Suivant",
+      page: "Page {current} sur {total}",
+      showing: "Affichage de {start} à {end} sur {total}",
+    },
     sorts: {
       popular: "Les plus populaires",
       priceAsc: "Prix : croissant",

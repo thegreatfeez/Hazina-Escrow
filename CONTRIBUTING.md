@@ -53,7 +53,7 @@ Required variables are documented in [.env.example](.env.example). You do **not*
 
 ```bash
 # Terminal 1 — backend (port 3001)
-cd backend && npm run dev
+cd backend && npm run start:dev
 
 # Terminal 2 — frontend (port 5173)
 cd frontend && npm run dev
