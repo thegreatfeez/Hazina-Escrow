@@ -1,17 +1,28 @@
 import { Router, Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 import {
   getDataset,
   updateDataset,
   addTransaction,
   txHashUsed,
 } from "../common/storage";
+import { validateBody } from "../common/validate";
 import { verifyStellarPayment } from "./stellar.service";
 import { generateDataSummary } from "../ai/claude.service";
 import { sendUsdcPayment } from "../agent/agent.wallet";
 import { notifySeller } from "../webhooks/webhook.service";
 
 export const paymentsRouter = Router();
+
+const verifySchema = z.object({
+  txHash: z.string().trim().min(1, "txHash is required").max(200),
+  buyerQuestion: z.string().max(500).optional(),
+});
+
+const verifyDemoSchema = z.object({
+  buyerQuestion: z.string().max(500).optional(),
+});
 
 /**
  * @openapi
@@ -143,12 +154,11 @@ paymentsRouter.post("/query/:id", (req: Request, res: Response) => {
 });
 
 // POST /api/verify/:id — verify payment and release data
-paymentsRouter.post("/verify/:id", async (req: Request, res: Response) => {
-  const { txHash, buyerQuestion } = req.body;
+paymentsRouter.post("/verify/:id", validateBody(verifySchema), async (req: Request, res: Response) => {
+  const { txHash, buyerQuestion } = req.body as z.infer<typeof verifySchema>;
   const dataset = getDataset(req.params.id);
 
   if (!dataset) return res.status(404).json({ error: "Dataset not found" });
-  if (!txHash) return res.status(400).json({ error: "txHash is required" });
 
   // Check replay
   if (txHashUsed(txHash)) {
@@ -256,8 +266,8 @@ paymentsRouter.post("/verify/:id", async (req: Request, res: Response) => {
 });
 
 // POST /api/verify/:id/demo — demo mode (skip Stellar check) for hackathon
-paymentsRouter.post("/verify/:id/demo", async (req: Request, res: Response) => {
-  const { buyerQuestion } = req.body;
+paymentsRouter.post("/verify/:id/demo", validateBody(verifyDemoSchema), async (req: Request, res: Response) => {
+  const { buyerQuestion } = req.body as z.infer<typeof verifyDemoSchema>;
   const dataset = getDataset(req.params.id);
 
   if (!dataset) return res.status(404).json({ error: "Dataset not found" });
