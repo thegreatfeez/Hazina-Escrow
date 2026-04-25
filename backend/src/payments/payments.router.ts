@@ -12,16 +12,31 @@ import { verifyStellarPayment } from "./stellar.service";
 import { generateDataSummary } from "../ai/claude.service";
 import { sendUsdcPayment } from "../agent/agent.wallet";
 import { notifySeller } from "../webhooks/webhook.service";
+import { sanitizeUserText } from "../common/sanitize";
 
 export const paymentsRouter = Router();
 
 const verifySchema = z.object({
   txHash: z.string().trim().min(1, "txHash is required").max(200),
-  buyerQuestion: z.string().max(500).optional(),
+  buyerQuestion: z
+    .string()
+    .max(500)
+    .transform((value) => {
+      const sanitized = sanitizeUserText(value);
+      return sanitized.length > 0 ? sanitized : undefined;
+    })
+    .optional(),
 });
 
 const verifyDemoSchema = z.object({
-  buyerQuestion: z.string().max(500).optional(),
+  buyerQuestion: z
+    .string()
+    .max(500)
+    .transform((value) => {
+      const sanitized = sanitizeUserText(value);
+      return sanitized.length > 0 ? sanitized : undefined;
+    })
+    .optional(),
 });
 
 /**
