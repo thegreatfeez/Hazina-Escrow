@@ -107,6 +107,23 @@ impl HazinaEscrow {
             .publish((soroban_sdk::symbol_short!("fee_upd"),), (admin, fee_bps));
     }
 
+    /// Transfer admin role to a new address. Only current admin can call.
+    pub fn transfer_admin(env: Env, admin: Address, new_admin: Address) {
+        admin.require_auth();
+        Self::assert_admin(&env, &admin);
+        env.storage().instance().set(&DataKey::Admin, &new_admin);
+        env.events().publish((soroban_sdk::symbol_short!("admin"),), (new_admin,));
+    }
+
+    /// Update platform fee (max 1000 bps = 10%). Only admin.
+    pub fn update_fee(env: Env, admin: Address, new_fee_bps: u32) {
+        admin.require_auth();
+        Self::assert_admin(&env, &admin);
+        assert!(new_fee_bps <= 1_000, "fee too high");
+        env.storage().instance().set(&DataKey::DefaultPlatformFee, &new_fee_bps);
+        env.events().publish((soroban_sdk::symbol_short!("fee_upd"),), (admin, new_fee_bps));
+    }
+
     pub fn set_dataset_fee(env: Env, admin: Address, dataset_id: String, fee_bps: u32) {
         admin.require_auth();
         Self::assert_admin(&env, &admin);

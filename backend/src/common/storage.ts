@@ -98,10 +98,24 @@ export function addTransaction(tx: Transaction): void {
   writeStore(store);
 }
 
-export function getTransactions(datasetId?: string): Transaction[] {
+export function getTransactions(datasetId?: string, limit?: number, offset?: number): Transaction[] {
   const store = readStore();
-  if (datasetId) return store.transactions.filter((t) => t.datasetId === datasetId);
-  return store.transactions;
+  let transactions = datasetId ? store.transactions.filter((t) => t.datasetId === datasetId) : store.transactions;
+  
+  if (offset !== undefined && offset > 0) {
+    transactions = transactions.slice(offset);
+  }
+  
+  if (limit !== undefined && limit > 0) {
+    transactions = transactions.slice(0, limit);
+  }
+  
+  return transactions;
+}
+
+export function getTransactionsCount(datasetId?: string): number {
+  const store = readStore();
+  return datasetId ? store.transactions.filter((t) => t.datasetId === datasetId).length : store.transactions.length;
 }
 
 export function txHashUsed(txHash: string): boolean {

@@ -305,7 +305,6 @@ export default function DashboardPage() {
             prefix="$"
             decimals={4}
             color="text-gold"
-            trend={12}
             locale={locale}
           />
           <StatCard
@@ -313,7 +312,6 @@ export default function DashboardPage() {
             label={t("dashboard.stats.totalQueries")}
             value={totalQueries}
             suffix={t("common.units.queries")}
-            trend={8}
             locale={locale}
           />
           <StatCard
