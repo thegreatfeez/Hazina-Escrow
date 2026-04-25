@@ -9,10 +9,27 @@ import {
   Dataset,
 } from '../common/storage';
 import { validateBody } from '../common/validate';
+import { sanitizeUserText } from '../common/sanitize';
 import { notifySeller } from '../webhooks/webhook.service';
 
 const STELLAR_ADDRESS_REGEX = /^G[A-Z2-7]{55}$/;
 const MAX_DATA_BYTES = 500 * 1024;
+const makeSanitizedTextField = (fieldName: string, maxLength: number) =>
+  z.string().transform(sanitizeUserText).superRefine((value, ctx) => {
+    if (value.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${fieldName} is required`,
+      });
+      return;
+    }
+    if (value.length > maxLength) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${fieldName} must be at most ${maxLength} characters`,
+      });
+    }
+  });
 
 const dataField = z
   .union([z.string(), z.record(z.unknown())])
@@ -49,12 +66,13 @@ const dataField = z
   });
 
 const createDatasetSchema = z.object({
-  name: z.string().min(1).max(200),
-  description: z.string().min(1).max(2000),
-  type: z.string().min(1).max(100),
+  name: makeSanitizedTextField('name', 200),
+  description: makeSanitizedTextField('description', 2000),
+  type: makeSanitizedTextField('type', 100),
   pricePerQuery: z.coerce.number().finite().positive(),
   sellerWallet: z
     .string()
+    .trim()
     .regex(STELLAR_ADDRESS_REGEX, 'must be a valid Stellar G-address'),
   data: dataField,
 });
