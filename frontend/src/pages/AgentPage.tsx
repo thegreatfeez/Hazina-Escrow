@@ -12,6 +12,7 @@ import {
   Activity,
 } from 'lucide-react';
 import { api, AgentJob } from '../lib/api';
+import { AgentResultSkeleton } from '../components/ui/SkeletonLoader';
 import clsx from 'clsx';
 import { getCatalog, useI18n } from '../i18n';
 
@@ -162,26 +163,38 @@ export default function AgentPage() {
         </div>
 
         {/* Loading skeleton */}
-        {loading && (
-          <div className="glass-card p-6 animate-pulse space-y-4">
-            <div className="h-5 bg-surface-2 rounded w-1/3" />
-            <div className="h-4 bg-surface-2 rounded w-full" />
-            <div className="h-4 bg-surface-2 rounded w-5/6" />
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              <div className="h-20 bg-surface-2 rounded-xl" />
-              <div className="h-20 bg-surface-2 rounded-xl" />
-              <div className="h-20 bg-surface-2 rounded-xl" />
-            </div>
-          </div>
-        )}
+        {loading && <AgentResultSkeleton />}
 
-        {/* Error */}
+        {/* Error with retry */}
         {error && (
           <div className="glass-card border border-red-500/30 p-5 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-body font-medium text-red-400 text-sm mb-1">{t("agent.errorTitle")}</p>
-              <p className="font-body text-foreground-muted text-sm">{error}</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-body font-medium text-red-400 text-sm mb-1">
+                {t("agent.errorTitle")}
+              </p>
+              <p className="font-body text-foreground-muted text-sm mb-3">{error}</p>
+              <button
+                type="button"
+                onClick={() => void runAgent()}
+                disabled={loading || !query.trim() || query.trim().length < 5}
+                className="btn-ghost text-xs px-4 py-2 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Retry the last agent request"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {t("common.actions.retry", "Try again")}
+              </button>
             </div>
           </div>
         )}

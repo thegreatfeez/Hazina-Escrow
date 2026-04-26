@@ -1,5 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { sanitizeUserText } from '../common/sanitize';
+import { getCircuitBreaker } from '../common/circuit-breaker';
+
+const claudeBreaker = getCircuitBreaker('anthropic-claude', {
+  failureThreshold: 3,
+  resetTimeoutMs: 30_000, // 30 s — Claude outages tend to be brief
+});
 
 export function stripMarkdownFence(text: string): string {
   return text
@@ -44,7 +50,7 @@ export function parseClaudeSummaryResponse(
 
 export async function generateDataSummary(
   data: Record<string, unknown>,
-  buyerQuestion?: string
+  buyerQuestion?: string,
 ): Promise<{ summary: string; answer?: string }> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const question = buyerQuestion ? sanitizeUserText(buyerQuestion) : undefined;
@@ -71,16 +77,18 @@ ${JSON.stringify(data, null, 2)}`
 Data:
 ${JSON.stringify(data, null, 2)}`;
 
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 800,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: prompt }],
-  });
+  const response = await claudeBreaker.execute(() =>
+    client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 800,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  );
 
   const fullText = response.content
-    .filter((b) => b.type === 'text')
-    .map((b) => (b as { type: 'text'; text: string }).text)
+    .filter(b => b.type === 'text')
+    .map(b => (b as { type: 'text'; text: string }).text)
     .join('');
 
   return parseClaudeSummaryResponse(fullText, Boolean(question));

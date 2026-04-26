@@ -1,0 +1,122 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { __resetRequestThrottleForTests, api } from './api';
+
+function createFetchResponse(body: unknown) {
+  return {
+    ok: true,
+    json: async () => body,
+  };
+}
+
+describe('api request throttling', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-25T00:00:00Z'));
+    __resetRequestThrottleForTests();
+  });
+
+  afterEach(() => {
+    __resetRequestThrottleForTests();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('spaces repeated calls to the same endpoint', async () => {
+    let resolveFirstResponse = () => {};
+
+    const firstResponse = new Promise<ReturnType<typeof createFetchResponse>>(resolve => {
+      resolveFirstResponse = () =>
+        resolve(
+          createFetchResponse({
+            success: true,
+            data: [],
+            total: 0,
+            page: 1,
+            totalPages: 1,
+          }),
+        );
+    });
+
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => firstResponse)
+      .mockImplementation(() =>
+        Promise.resolve(
+          createFetchResponse({
+            success: true,
+            data: [],
+            total: 0,
+            page: 1,
+            totalPages: 1,
+          }),
+        ),
+      );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const firstCall = api.getDatasets();
+    const secondCall = api.getDatasets();
+
+    await Promise.resolve();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolveFirstResponse();
+    await Promise.resolve();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(249);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await expect(firstCall).resolves.toMatchObject({ total: 0 });
+    await expect(secondCall).resolves.toMatchObject({ total: 0 });
+  });
+
+  it('keeps different endpoints independent', async () => {
+    const fetchMock = vi.fn((url: string) => {
+      if (String(url).includes('/datasets/stats')) {
+        return Promise.resolve(
+          createFetchResponse({
+            success: true,
+            stats: {
+              totalDatasets: 1,
+              totalQueries: 2,
+              totalUsdcEarned: 3,
+              totalTransactions: 4,
+            },
+          }),
+        );
+      }
+
+      return Promise.resolve(
+        createFetchResponse({
+          success: true,
+          data: [],
+          total: 0,
+          page: 1,
+          totalPages: 1,
+        }),
+      );
+    });
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const datasetsPromise = api.getDatasets();
+    const statsPromise = api.getStats();
+
+    await Promise.resolve();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await expect(datasetsPromise).resolves.toMatchObject({ total: 0 });
+    await expect(statsPromise).resolves.toMatchObject({
+      totalDatasets: 1,
+      totalQueries: 2,
+      totalUsdcEarned: 3,
+      totalTransactions: 4,
+    });
+  });
+});

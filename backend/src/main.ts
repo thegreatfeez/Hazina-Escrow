@@ -25,6 +25,8 @@ const PORT = process.env.PORT || 3001;
 
 // Compress all compressible API responses (brotli preferred, gzip fallback)
 app.use(createCompressionMiddleware());
+// Ensure client IP is derived correctly when running behind a reverse proxy.
+app.set('trust proxy', 1);
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '2mb' }));
@@ -65,7 +67,7 @@ app.use('/api/verify/:id/demo', demoLimiter);
 app.use('/api/agent/research/demo', demoLimiter);
 app.use('/api/verify', strictLimiter);
 app.use('/api/agent/research', strictLimiter);
-app.use('/api', globalLimiter);
+app.use(globalLimiter);
 
 // Initialize backup scheduler
 const backupEnabled = process.env.BACKUP_ENABLED !== 'false';
@@ -171,6 +173,23 @@ app.get('/health', async (_req, res) => {
     checks,
     timestamp: new Date().toISOString(),
   });
+});
+
+// Global error handling middleware
+app.use((err: Error, _req: Request, res: Response, _next: () => void) => {
+  const message = err.message || 'Internal server error';
+  console.error('[Global Error Handler]', err);
+  res.status(500).json({ error: message });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason: unknown) => {
+  console.error('[Unhandled Rejection]', reason);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err: Error) => {
+  console.error('[Uncaught Exception]', err);
 });
 
 // Routes
