@@ -1,6 +1,12 @@
 import * as StellarSdk from '@stellar/stellar-sdk';
+import { getCircuitBreaker } from '../common/circuit-breaker';
 
 const server = new StellarSdk.Horizon.Server('https://horizon-testnet.stellar.org');
+
+const stellarBreaker = getCircuitBreaker('stellar-horizon', {
+  failureThreshold: 5,
+  resetTimeoutMs: 60_000, // 60 s
+});
 
 interface VerifyParams {
   txHash: string;
@@ -19,28 +25,36 @@ export async function verifyStellarPayment(params: VerifyParams): Promise<Verify
   const { txHash, expectedAmount, destinationAddress } = params;
 
   try {
-    const tx = await server.transactions().transaction(txHash).call();
-
-    // Load operations for this transaction
-    const ops = await server.operations().forTransaction(txHash).call();
+    const [tx, ops] = await stellarBreaker.execute(() =>
+      Promise.all([
+        server.transactions().transaction(txHash).call(),
+        server.operations().forTransaction(txHash).call(),
+      ]),
+    );
     const paymentOps = ops.records.filter(
-      (op) =>
+      op =>
         op.type === 'payment' &&
-        (op as StellarSdk.Horizon.ServerApi.PaymentOperationRecord).to === destinationAddress
+        (op as StellarSdk.Horizon.ServerApi.PaymentOperationRecord).to === destinationAddress,
     );
 
     if (paymentOps.length === 0) {
       return { valid: false, reason: 'No payment to escrow address found in transaction' };
     }
 
-    // Find USDC payment (issuer: testnet USDC)
-    const usdcOps = paymentOps.filter((op) => {
+    // Find USDC payment — must match both asset code and issuer to prevent XLM/fake-USDC substitution
+    const expectedIssuer = process.env.USDC_ISSUER;
+    const usdcOps = paymentOps.filter(op => {
       const payOp = op as StellarSdk.Horizon.ServerApi.PaymentOperationRecord;
-      return payOp.asset_code === 'USDC';
+      return (
+        payOp.asset_code === 'USDC' && (!expectedIssuer || payOp.asset_issuer === expectedIssuer)
+      );
     });
 
     if (usdcOps.length === 0) {
-      return { valid: false, reason: 'No USDC payment found — ensure you sent USDC on Stellar testnet' };
+      return {
+        valid: false,
+        reason: 'No USDC payment found — ensure you sent USDC on Stellar testnet',
+      };
     }
 
     const payOp = usdcOps[0] as StellarSdk.Horizon.ServerApi.PaymentOperationRecord;

@@ -18,9 +18,15 @@ import { webhooksRouter } from './webhooks/webhook.router';
 import { readStore } from './common/storage';
 import { BackupScheduler } from './common/backup.scheduler';
 import { backupRouter, setBackupScheduler } from './common/backup.router';
+import { createCompressionMiddleware } from './common/compression';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Compress all compressible API responses (brotli preferred, gzip fallback)
+app.use(createCompressionMiddleware());
+// Ensure client IP is derived correctly when running behind a reverse proxy.
+app.set('trust proxy', 1);
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '2mb' }));
@@ -29,8 +35,7 @@ app.use(express.json({ limit: '2mb' }));
 const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
-const isDemoRoute = (req: Request): boolean =>
-  req.originalUrl.split('?')[0].endsWith('/demo');
+const isDemoRoute = (req: Request): boolean => req.originalUrl.split('?')[0].endsWith('/demo');
 
 const globalLimiter = rateLimit({
   windowMs: FIFTEEN_MINUTES_MS,
@@ -62,7 +67,7 @@ app.use('/api/verify/:id/demo', demoLimiter);
 app.use('/api/agent/research/demo', demoLimiter);
 app.use('/api/verify', strictLimiter);
 app.use('/api/agent/research', strictLimiter);
-app.use('/api', globalLimiter);
+app.use(globalLimiter);
 
 // Initialize backup scheduler
 const backupEnabled = process.env.BACKUP_ENABLED !== 'false';
@@ -73,16 +78,16 @@ if (backupEnabled) {
     maxBackups: parseInt(process.env.BACKUP_MAX_BACKUPS || '30', 10),
     cronSchedule: process.env.BACKUP_CRON_SCHEDULE || '0 0 * * *', // Daily at midnight by default
   });
-  
+
   backupScheduler.start();
   setBackupScheduler(backupScheduler);
-  
+
   // Graceful shutdown
   process.on('SIGTERM', () => {
     console.log('[Backup] Stopping backup scheduler...');
     backupScheduler.stop();
   });
-  
+
   process.on('SIGINT', () => {
     console.log('[Backup] Stopping backup scheduler...');
     backupScheduler.stop();
@@ -113,32 +118,28 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Health check with service monitoring
 const HEALTH_TIMEOUT_MS = 3000;
-const HORIZON_URL = "https://horizon-testnet.stellar.org/";
+const HORIZON_URL = 'https://horizon-testnet.stellar.org/';
 
-type CheckResult = "ok" | "error";
+type CheckResult = 'ok' | 'error';
 
-async function withHealthTimeout(
-  fn: () => Promise<CheckResult>,
-): Promise<CheckResult> {
+async function withHealthTimeout(fn: () => Promise<CheckResult>): Promise<CheckResult> {
   return Promise.race<CheckResult>([
-    fn().catch(() => "error"),
-    new Promise<CheckResult>((resolve) =>
-      setTimeout(() => resolve("error"), HEALTH_TIMEOUT_MS),
-    ),
+    fn().catch(() => 'error'),
+    new Promise<CheckResult>(resolve => setTimeout(() => resolve('error'), HEALTH_TIMEOUT_MS)),
   ]);
 }
 
 async function checkStorage(): Promise<CheckResult> {
   try {
     readStore();
-    return "ok";
+    return 'ok';
   } catch {
-    return "error";
+    return 'error';
   }
 }
 
 async function checkAnthropic(): Promise<CheckResult> {
-  return process.env.ANTHROPIC_API_KEY ? "ok" : "error";
+  return process.env.ANTHROPIC_API_KEY ? 'ok' : 'error';
 }
 
 async function checkStellar(): Promise<CheckResult> {
@@ -146,18 +147,18 @@ async function checkStellar(): Promise<CheckResult> {
   const timer = setTimeout(() => controller.abort(), HEALTH_TIMEOUT_MS);
   try {
     const response = await fetch(HORIZON_URL, {
-      method: "GET",
+      method: 'GET',
       signal: controller.signal,
     });
-    return response.ok ? "ok" : "error";
+    return response.ok ? 'ok' : 'error';
   } catch {
-    return "error";
+    return 'error';
   } finally {
     clearTimeout(timer);
   }
 }
 
-app.get("/health", async (_req, res) => {
+app.get('/health', async (_req, res) => {
   const [storage, anthropic, stellar] = await Promise.all([
     withHealthTimeout(checkStorage),
     withHealthTimeout(checkAnthropic),
@@ -165,14 +166,30 @@ app.get("/health", async (_req, res) => {
   ]);
 
   const checks = { storage, anthropic, stellar };
-  const allOk =
-    storage === "ok" && anthropic === "ok" && stellar === "ok";
+  const allOk = storage === 'ok' && anthropic === 'ok' && stellar === 'ok';
 
   res.status(allOk ? 200 : 503).json({
-    status: allOk ? "ok" : "degraded",
+    status: allOk ? 'ok' : 'degraded',
     checks,
     timestamp: new Date().toISOString(),
   });
+});
+
+// Global error handling middleware
+app.use((err: Error, _req: Request, res: Response, _next: () => void) => {
+  const message = err.message || 'Internal server error';
+  console.error('[Global Error Handler]', err);
+  res.status(500).json({ error: message });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason: unknown) => {
+  console.error('[Unhandled Rejection]', reason);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err: Error) => {
+  console.error('[Uncaught Exception]', err);
 });
 
 // Routes

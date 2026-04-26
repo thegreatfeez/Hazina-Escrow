@@ -21,6 +21,9 @@ import { useI18n } from "../i18n";
 
 export default function MarketplacePage() {
   const { locale, t } = useI18n();
+  /** Raw input value — updated on every keystroke. */
+  const [searchInput, setSearchInput] = useState("");
+  /** Debounced value used in the query — updated 400 ms after typing stops. */
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [sort, setSort] = useState("popular");
@@ -28,48 +31,32 @@ export default function MarketplacePage() {
   const [selectedDataset, setSelectedDataset] = useState<DatasetMeta | null>(
     null,
   );
-  const pageSize = 9;
+  const pageSize = 12;
 
-  const { data: datasets = [], isLoading: loading, refetch } = useQuery<DatasetMeta[]>({
-    queryKey: ["datasets"],
-    queryFn: api.getDatasets,
+  // Debounce: only update the query key 400 ms after the user stops typing.
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const { data, isLoading: loading, refetch } = useQuery({
+    queryKey: ["datasets", page, search, typeFilter, sort],
+    queryFn: () => api.getDatasets({ page, limit: pageSize, search, type: typeFilter, sort }),
   });
 
-  const filtered = useMemo(() => {
-    return datasets
-      .filter((d) => {
-        const q = search.toLowerCase();
-        const matchSearch =
-          !q ||
-          d.name.toLowerCase().includes(q) ||
-          d.description.toLowerCase().includes(q);
-        const matchType = !typeFilter || d.type === typeFilter;
-        return matchSearch && matchType;
-      })
-      .sort((a, b) => {
-        if (sort === "popular") return b.queriesServed - a.queriesServed;
-        if (sort === "price-asc") return a.pricePerQuery - b.pricePerQuery;
-        if (sort === "price-desc") return b.pricePerQuery - a.pricePerQuery;
-        if (sort === "newest")
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        return 0;
-      });
-  }, [datasets, search, typeFilter, sort]);
+  const datasets = data?.data || [];
+  const total = data?.total || 0;
+  const totalPages = data?.totalPages || 1;
 
   useEffect(() => {
     setPage(1);
   }, [search, sort, typeFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [currentPage, filtered]);
-  const pageStart = filtered.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const pageEnd = filtered.length === 0 ? 0 : Math.min(currentPage * pageSize, filtered.length);
+  
+  const pageStart = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = total === 0 ? 0 : Math.min(currentPage * pageSize, total);
+  
   const visiblePages = useMemo(() => {
     const start = Math.max(1, currentPage - 1);
     const end = Math.min(totalPages, start + 2);
@@ -129,13 +116,13 @@ export default function MarketplacePage() {
               <input
                 type="text"
                 placeholder={t("marketplace.searchPlaceholder")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full bg-void/60 border border-border/60 rounded-xl pl-11 pr-4 py-3 text-sm font-body text-foreground placeholder:text-muted focus:outline-none focus:border-gold/40 transition-colors"
               />
-              {search && (
+              {searchInput && (
                 <button
-                  onClick={() => setSearch("")}
+                  onClick={() => { setSearchInput(""); setSearch(""); }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
                   aria-label={t("common.actions.resetSearch")}
                 >
@@ -169,6 +156,8 @@ export default function MarketplacePage() {
                 <button
                   key={value}
                   onClick={() => setTypeFilter(value)}
+                  aria-label={t("marketplace.filterBy", { type: label })}
+                  aria-pressed={typeFilter === value}
                   className={clsx(
                     "px-3 py-1.5 rounded-lg text-xs font-body font-medium transition-all duration-200",
                     typeFilter === value
@@ -195,12 +184,12 @@ export default function MarketplacePage() {
                 {t("marketplace.pagination.showing", {
                   start: pageStart.toLocaleString(locale),
                   end: pageEnd.toLocaleString(locale),
-                  total: filtered.length.toLocaleString(locale),
+                  total: total.toLocaleString(locale),
                 })}
               </>
             )}
           </p>
-          {!loading && filtered.length > 0 && (
+          {!loading && datasets.length > 0 && (
             <p className="text-sm text-foreground-muted font-body">
               {t("marketplace.pagination.page", {
                 current: currentPage.toLocaleString(locale),
@@ -217,7 +206,7 @@ export default function MarketplacePage() {
               <DatasetCardSkeleton key={i} />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : datasets.length === 0 ? (
           <div className="text-center py-24">
             <div className="w-16 h-16 rounded-2xl bg-surface-2 border border-border flex items-center justify-center mx-auto mb-4">
               <Search className="w-8 h-8 text-muted" />
@@ -232,7 +221,7 @@ export default function MarketplacePage() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginated.map((ds: DatasetMeta) => (
+              {datasets.map((ds: DatasetMeta) => (
                 <DatasetCard
                   key={ds.id}
                   dataset={ds}
@@ -247,12 +236,13 @@ export default function MarketplacePage() {
                   type="button"
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
+                  aria-label={t("marketplace.pagination.previous")}
                   className={clsx(
                     "btn-ghost px-4 py-2 text-sm flex items-center gap-2",
                     currentPage === 1 && "opacity-50 cursor-not-allowed",
                   )}
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                   {t("marketplace.pagination.previous")}
                 </button>
 
@@ -262,6 +252,8 @@ export default function MarketplacePage() {
                       key={pageNumber}
                       type="button"
                       onClick={() => setPage(pageNumber)}
+                      aria-label={t("marketplace.pagination.goToPage", { page: pageNumber })}
+                      aria-current={currentPage === pageNumber ? 'page' : undefined}
                       className={clsx(
                         "w-10 h-10 rounded-xl text-sm font-body font-medium transition-all duration-200",
                         currentPage === pageNumber
@@ -278,13 +270,14 @@ export default function MarketplacePage() {
                   type="button"
                   onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
+                  aria-label={t("marketplace.pagination.next")}
                   className={clsx(
                     "btn-ghost px-4 py-2 text-sm flex items-center gap-2",
                     currentPage === totalPages && "opacity-50 cursor-not-allowed",
                   )}
                 >
                   {t("marketplace.pagination.next")}
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             )}

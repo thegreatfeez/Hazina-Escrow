@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { runResearchAgent, runResearchAgentDemo } from './agent.service';
+import { runResearchAgent, runResearchAgentDemo, SELLER_TYPES, AGENT_FEE_USDC } from './agent.service';
 import { getAgentPublicKey } from './agent.wallet';
 import { validateBody } from '../common/validate';
+import { getAllDatasets } from '../common/storage';
 
 export const agentRouter = Router();
 
@@ -108,6 +109,20 @@ const researchDemoSchema = z.object({
 
 // GET /api/agent/info — agent wallet address and capabilities
 agentRouter.get('/info', (_req: Request, res: Response) => {
+  const datasets = getAllDatasets();
+
+  const sellers = SELLER_TYPES.map(st => {
+    const ds = datasets.find(d => d.type === st.type);
+    return {
+      type: st.type,
+      role: st.description,
+      cost: ds?.pricePerQuery ?? 0
+    };
+  });
+
+  const totalCost = sellers.reduce((sum, s) => sum + (typeof s.cost === 'number' ? s.cost : 0), 0);
+  const agentProfit = parseFloat((AGENT_FEE_USDC - totalCost).toFixed(4));
+
   res.json({
     success: true,
     agent: {
@@ -116,18 +131,13 @@ agentRouter.get('/info', (_req: Request, res: Response) => {
       description: 'Autonomous DeFi yield researcher. Pays data sellers via x402 on Stellar, synthesises with Claude AI.',
       agentWallet: getAgentPublicKey() ?? 'Not configured (demo-only mode)',
       fee: {
-        amount: 1,
+        amount: AGENT_FEE_USDC,
         currency: 'USDC',
         network: 'Stellar',
         description: 'Flat fee per research job',
       },
-      sellers: [
-        { type: 'yield-data',    role: 'APY & protocol data',      cost: 0.02 },
-        { type: 'whale-wallets', role: 'Whale wallet movements',    cost: 0.05 },
-        { type: 'risk-scores',   role: 'Protocol risk scores',      cost: 0.03 },
-        { type: 'sentiment',     role: 'Social market sentiment',   cost: 0.04 },
-      ],
-      agentProfit: 0.86,
+      sellers,
+      agentProfit,
       escrowWallet: process.env.ESCROW_WALLET ?? 'Not configured',
     },
   });
