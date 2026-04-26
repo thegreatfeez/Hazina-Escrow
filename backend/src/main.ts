@@ -18,10 +18,13 @@ import { webhooksRouter } from './webhooks/webhook.router';
 import { readStore } from './common/storage';
 import { BackupScheduler } from './common/backup.scheduler';
 import { backupRouter, setBackupScheduler } from './common/backup.router';
+import { createCompressionMiddleware } from './common/compression';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Compress all compressible API responses (brotli preferred, gzip fallback)
+app.use(createCompressionMiddleware());
 // Ensure client IP is derived correctly when running behind a reverse proxy.
 app.set('trust proxy', 1);
 
